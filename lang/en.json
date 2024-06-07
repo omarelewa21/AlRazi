@@ -1,6 +1,21 @@
 {
     "Welcome to AlRazi for Mayo Clinic Diagnosis": "Welcome to AlRazi for Mayo Clinic Diagnosis",
-    "Start Diagnosing New X-ray Image": "Start Diagnosing New X-ray Image",
+    "Start Diagnosing New X-Ray Image": "Start Diagnosing New X-Ray Image",
     "Dashboard": "Dashboard",
-    "Diagnose New X-ray Image": "Diagnose New X-ray Image"
+    "Diagnose New X-Ray Image": "Diagnose New X-Ray Image",
+    "Name": "Name",
+    "Gender": "Gender",
+    "Male": "Male",
+    "Female": "Female",
+    "Other": "Other",
+    "Date of Birth": "Date of Birth",
+    "Upload X-Ray Image": "Upload X-Ray Image",
+    "Diagnose": "Diagnose",
+    "Diagnosis": "Diagnosis",
+    "Email": "Email",
+    "Phone": "Phone",
+    "Address": "Address",
+    "Process Diagnosis": "Process Diagnosis",
+    "Referral": "Referral",
+    "Observations": "Observations"
 }

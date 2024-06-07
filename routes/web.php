@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::get('diagnose', '\App\Http\Controllers\DiagnoseController@create')
+    ->middleware(['auth', 'verified'])
+    ->name('diagnose');
 
 Route::view('/', 'dashboard')
     ->middleware(['auth', 'verified'])

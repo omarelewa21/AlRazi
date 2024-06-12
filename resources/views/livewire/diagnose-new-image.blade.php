@@ -59,8 +59,10 @@
     </div>
 
     <!-- Image Display -->
-    <div class="col-span-6">
-
+    <div class="col-span-6 flex justify-center images-content">
+        {{-- @foreach ($responseImages as $image)
+            <img src="data:image/png;base64,{{ $image }}" alt="X-Ray Image" class="absolute">
+        @endforeach --}}
     </div>
 
     <!-- Right Sidebar Table Information  -->
@@ -68,27 +70,68 @@
         <h3 class="text-lg bg-blue-500 mb-3 p-1 pl-2 font-semibold text-white dark:text-gray-200 leading-tight">
             @lang('Observations')
         </h3>
-        <div class="overflow-auto mb-10 m-2">
-            <table class="table-auto w-full">
-                <thead>
-                    <tr>
-                        <th class="border border-gray-400 px-4 py-2 text-left">@lang('Variable')</th>
-                        <th class="border border-gray-400 px-4 py-2 text-left">@lang('Observation')</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($observations as $observation)
+        @if (!empty($observations) && false)
+            <div class="overflow-auto mb-10 m-2">
+                <table class="table-auto w-full">
+                    <thead>
                         <tr>
-                            <td class="border border-gray-400 px-4 py-2 text-left">{{ $observation['variable'] }}</td>
-                            <td class="border border-gray-400 px-4 py-2 text-left text-red-600">{{ $observation['value'] }}</td>
+                            <th class="border border-gray-400 px-4 py-2 text-left">@lang('Variable')</th>
+                            <th class="border border-gray-400 px-4 py-2 text-left">@lang('Observation')</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
-            @lang("Generate Report")
-        </button>
+                    </thead>
+                    <tbody>
+                        @foreach ($observations as $observation)
+                            <tr>
+                                <td class="border border-gray-400 px-4 py-2 text-left">{{ $observation['variable'] }}</td>
+                                <td class="border border-gray-400 px-4 py-2 text-left text-red-600">{{ $observation['value'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
+                @lang("Generate Report")
+            </button>
+        @endif
     </div>
+
+    @script
+    <script>
+        $wire.on('display-images', (event) => {
+            let images = event;
+            console.log(images);
+            const content = document.querySelector('.images-content');
+            const element = document.createElement('div');
+
+            element.style.width = '500px';
+            element.style.height = '500px';
+
+            content.appendChild(element);
+
+            const renderingEngineId = 'myRenderingEngine';
+            const renderingEngine = new RenderingEngine(renderingEngineId);
+
+            const viewportId = 'CT_AXIAL_STACK';
+
+            const viewportInput = {
+            viewportId,
+            element,
+            type: ViewportType.STACK,
+            };
+
+            renderingEngine.enableElement(viewportInput);
+
+            const viewport = renderingEngine.getViewport(viewportId);
+
+            viewport.setStack(imageIds, 60);
+
+            viewport.render();
+
+
+        })
+    </script>
+    @endscript
 </div>
-</table>
+
+

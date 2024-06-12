@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -31,36 +34,37 @@ class DiagnoseNewImage extends Component
     #[Validate('required|image|max:1024|mimes:jpg,jpeg,png')]
     public $image;
 
+    public $responseImages = [];
+    public $imageSources = [];
     public $observations = [];
-
-    public function mount()
-    {
-        $this->observations = [
-            [
-                'variable'  => 'Heart Rate',
-                'value'     => '72 bpm'
-            ],
-            [
-                'variable'  => 'Blood Pressure',
-                'value'     => '120/80 mmHg'
-            ],
-            [
-                'variable'  => 'Temperature',
-                'value'     => '36.5 °C'
-            ],
-            [
-                'variable'  => 'Oxygen Saturation',
-                'value'     => '98%'
-            ]
-        ];
-    }
 
     public function processDiagnosis()
     {
         $this->validate();
 
-        dd($this->image);
+        // $payload = $this->getImageDiagnosePayload();
+        // $response = Http::post('https://api.example.com/diagnose', $payload);
 
-        // Process the diagnosis here
+        // Sample response
+        $response = file_get_contents("storage/cervical.json");
+        $response = json_decode($response, true);
+
+        $this->setDiagnoseResponseData($response);
+
+        $this->dispatch('display-images', $this->imageSources);
+    }
+
+    private function getImageDiagnosePayload()
+    {
+        // Prepare the payload to send to the API
+    }
+
+    private function setDiagnoseResponseData($response)
+    {
+        $this->responseImages = $response['images'];
+        $this->imageSources = collect($response['images'])->map(function ($image) {
+            return "data:image/png;base64,$image";
+        })->toArray();
+        $this->observations = Arr::except($response, 'images');
     }
 }

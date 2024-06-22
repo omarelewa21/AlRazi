@@ -95,43 +95,6 @@
             </button>
         @endif
     </div>
-
-    @script
-    <script>
-        $wire.on('display-images', (event) => {
-            let images = event;
-            console.log(images);
-            const content = document.querySelector('.images-content');
-            const element = document.createElement('div');
-
-            element.style.width = '500px';
-            element.style.height = '500px';
-
-            content.appendChild(element);
-
-            const renderingEngineId = 'myRenderingEngine';
-            const renderingEngine = new RenderingEngine(renderingEngineId);
-
-            const viewportId = 'CT_AXIAL_STACK';
-
-            const viewportInput = {
-            viewportId,
-            element,
-            type: ViewportType.STACK,
-            };
-
-            renderingEngine.enableElement(viewportInput);
-
-            const viewport = renderingEngine.getViewport(viewportId);
-
-            viewport.setStack(imageIds, 60);
-
-            viewport.render();
-
-
-        })
-    </script>
-    @endscript
 </div>
 
 

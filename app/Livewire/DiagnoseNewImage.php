@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -31,27 +31,29 @@ class DiagnoseNewImage extends Component
     #[Validate('string|max:255')]
     public $referral = '';
 
-    #[Validate('required|image|max:1024|mimes:jpg,jpeg,png')]
-    public $image;
+    #[Validate('required|mimes:jpg,jpeg,png,dcm')]
+    public $file;
 
     public $responseImages = [];
-    public $imageSources = [];
+    public $imageIds = [];
     public $observations = [];
 
     public function processDiagnosis()
     {
         $this->validate();
 
+        $this->processFile();
         // $payload = $this->getImageDiagnosePayload();
         // $response = Http::post('https://api.example.com/diagnose', $payload);
 
         // Sample response
-        $response = file_get_contents("storage/cervical.json");
+        // file_get_contents("storage/cervical.json")
+        $response = Storage::get('cervical.json');
         $response = json_decode($response, true);
 
         $this->setDiagnoseResponseData($response);
 
-        $this->dispatch('display-images', $this->imageSources);
+        $this->dispatch('cornerstone-images-render', images: $this->imageIds);
     }
 
     private function getImageDiagnosePayload()
@@ -62,9 +64,30 @@ class DiagnoseNewImage extends Component
     private function setDiagnoseResponseData($response)
     {
         $this->responseImages = $response['images'];
-        $this->imageSources = collect($response['images'])->map(function ($image) {
-            return "data:image/png;base64,$image";
-        })->toArray();
+        $this->imageIds = collect($response['images'])->flatten()->map(function ($base64Image, $index) {
+            $randomName = Str::random(10);
+            Storage::disk('public')->put("images/$randomName.png", base64_decode($base64Image));
+            return asset("storage/images/$randomName.png");
+        });
         $this->observations = Arr::except($response, 'images');
+    }
+
+    private function processFile()
+    {
+        $fileExtension = $this->file->getClientOriginalExtension();
+        return match ($fileExtension) {
+            'dcm' => $this->processDicomFile(),
+            default => $this->processImageFile(),
+        };
+    }
+
+    private function processDicomFile()
+    {
+        $this->file->storeAs('dicom', $this->file->hashName(), 'public');
+        // $dicomParser = new DicomParser(public_path('storage/dicom/' . $this->file->hashName()));
+        // $dicomDataset = $dicomParser->parse();
+        // dd($dicomDataset->PatientName);
+
+
     }
 }

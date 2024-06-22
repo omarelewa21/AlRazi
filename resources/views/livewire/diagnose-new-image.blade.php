@@ -46,9 +46,9 @@
                 @error('referral') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
             <div class="mt-10">
-                <label for="image" class="font-semibold block required">@lang('Upload X-Ray Image')</label>
-                <input type="file" wire:model="image" required class="rounded w-full">
-                @error('image') <span class="text-red-500">{{ $message }}</span> @enderror
+                <label for="file" class="font-semibold block required">@lang('Upload X-Ray Image')</label>
+                <input type="file" wire:model="file" required class="rounded w-full">
+                @error('file') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
             <div class="mt-3">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -59,10 +59,8 @@
     </div>
 
     <!-- Image Display -->
-    <div class="col-span-6 flex justify-center images-content">
-        {{-- @foreach ($responseImages as $image)
-            <img src="data:image/png;base64,{{ $image }}" alt="X-Ray Image" class="absolute">
-        @endforeach --}}
+    <div class="col-span-6 cornerstone-element-wrapper flex justify-center images-content">
+        <div class="cornerstone-element" data-index="0" oncontextmenu="return false"></div>
     </div>
 
     <!-- Right Sidebar Table Information  -->
@@ -95,43 +93,88 @@
             </button>
         @endif
     </div>
-
-    @script
-    <script>
-        $wire.on('display-images', (event) => {
-            let images = event;
-            console.log(images);
-            const content = document.querySelector('.images-content');
-            const element = document.createElement('div');
-
-            element.style.width = '500px';
-            element.style.height = '500px';
-
-            content.appendChild(element);
-
-            const renderingEngineId = 'myRenderingEngine';
-            const renderingEngine = new RenderingEngine(renderingEngineId);
-
-            const viewportId = 'CT_AXIAL_STACK';
-
-            const viewportInput = {
-            viewportId,
-            element,
-            type: ViewportType.STACK,
-            };
-
-            renderingEngine.enableElement(viewportInput);
-
-            const viewport = renderingEngine.getViewport(viewportId);
-
-            viewport.setStack(imageIds, 60);
-
-            viewport.render();
-
-
-        })
-    </script>
-    @endscript
 </div>
 
+@push('scripts')
+{{-- <script src="https://unpkg.com/cornerstone-core"></script>
+<script src="https://unpkg.com/cornerstone-web-image-loader"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/cornerstone-math@0.1.6"></script>
+<script src="https://unpkg.com/cornerstone-tools"></script> --}}
+<script>
+    window.onload = async function() {
+        const imageIds = createImageIdsAndCacheMetaData({
+            StudyInstanceUID:
+                '1.3.6.1.4.1.14519.5.2.1.7009.2403.334240657131972136850343327463',
+            SeriesInstanceUID:
+                '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
+            wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
+        });
 
+        const content = document.querySelector('.cornerstone-element-wrapper');
+        const element = document.createElement('div');
+
+        element.style.width = '500px';
+        element.style.height = '500px';
+
+        content.appendChild(element);
+
+        const renderingEngineId = 'myRenderingEngine';
+        const renderingEngine = new RenderingEngine(renderingEngineId);
+
+        const viewportId = 'CT_AXIAL_STACK';
+
+        const viewportInput = {
+            viewportId,
+            element,
+            type: Enums.ViewportType.STACK,
+        };
+
+        renderingEngine.enableElement(viewportInput);
+
+        const viewport = renderingEngine.getViewport(viewportId);
+
+        viewport.setStack(imageIds, 60);
+
+        viewport.render();
+
+
+        // cornerstoneWebImageLoader.external.cornerstone = cornerstone;
+
+        // // Setup tools
+        // cornerstoneTools.init();
+
+        // // Enable Element
+        // const element = document.querySelector('.cornerstone-element');
+        // cornerstone.enable(element);
+
+        // // Add Tool
+        // const LengthTool = cornerstoneTools['LengthTool'];
+        // cornerstoneTools.addTool(LengthTool);
+        // cornerstoneTools.addTool(cornerstoneTools.AngleTool);
+
+        // // Set Tool Active
+        // cornerstoneTools.setToolActive('Length', { mouseButtonMask: 1 });
+        // cornerstoneTools.setToolActive('Angle', { mouseButtonMask: 2 });
+
+        // Display an image
+        // const imageId = 'http://elrazy.test/storage/test.png';
+        // cornerstone.loadImage(image).then(function (image) {
+        //     cornerstone.displayImage(element, image);
+        // });
+    }
+</script>
+@endpush
+
+{{-- @script
+<script>
+    $wire.on('cornerstone-images-render', (event) => {
+        const element = document.querySelector('.cornerstone-element');
+        const imageId = event.images[0];
+        console.log(imageId);
+        cornerstone.loadImage(imageId).then(function (image) {
+            cornerstone.displayImage(element, image);
+        });
+    })
+</script>
+@endscript --}}

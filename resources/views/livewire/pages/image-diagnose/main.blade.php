@@ -38,7 +38,11 @@
                     type="button"
                     class="flex items-center gap-2 px-5 py-2 rounded-md shadow"
                 >
-                    <x-icons.eye />
+                    @if ($this->allHidden())
+                        <x-icons.eye />
+                    @else
+                        <x-icons.eye-slash />
+                    @endif
                 </button>
 
 
@@ -50,26 +54,43 @@
                     x-on:click.outside="close($refs.button)"
                     :id="$id('dropdown-button')"
                     style="display: none;"
-                    class="absolute left-0 mt-2 w-40 rounded-md bg-white shadow-md z-10"
+                    class="absolute left-0 mt-2 w-60 rounded-md bg-white shadow-md z-10"
                 >
-                    <a href="#" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-gray-50 disabled:text-gray-500">
-                        New Task
-                    </a>
+                    <button
+                        wire:click="toggleAllVisibility"
+                        class="flex items-start items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left hover:bg-gray-50 text-lg disabled:text-gray-500"
+                    >
+                        @if ($this->allHidden())
+                            <x-icons.eye :h="20" :w="22.5"/>
+                        @else
+                            <x-icons.eye-slash :h="20" :w="22.5"/>
+                        @endif
+                        @lang('All')
+                    </button>
 
-                    <a href="#" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-gray-50 disabled:text-gray-500">
-                        Edit Task
-                    </a>
-
-                    <a href="#" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-gray-50 disabled:text-gray-500">
-                        <span class="text-red-600">Delete Task</span>
-                    </a>
+                    @foreach ($renderImages as  $key => $image)
+                        <button
+                            wire:click="toggleVisibility('{{ $key }}')"
+                            class="flex items-start items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left hover:bg-gray-50 text-lg disabled:text-gray-500"
+                        >
+                            @if ($image['visibility'])
+                                <x-icons.eye-slash :h="20" :w="22.5"/>
+                                {{ $key }}
+                            @else
+                                <x-icons.eye :h="20" :w="22.5"/>
+                                {{ $key }}
+                            @endif
+                        </button>
+                    @endforeach
                 </div>
             </div>
         </div>
 
         <div class="flex justify-center mt-5">
             @foreach ($renderImages as $image)
-                <img src="{{ $image }}" alt="X-Ray Image" class="absolute">
+                @if ($image['visibility'])
+                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute">
+                @endif
             @endforeach
         </div>
     </div>

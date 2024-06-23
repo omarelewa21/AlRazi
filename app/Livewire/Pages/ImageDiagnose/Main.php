@@ -3,7 +3,9 @@
 namespace App\Livewire\Pages\ImageDiagnose;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -42,6 +44,11 @@ class Main extends Component
         $this->setDiagnoseResponseData($data);
     }
 
+    public function render()
+    {
+        return view('livewire.pages.image-diagnose.main');
+    }
+
     public function processDiagnosis()
     {
         $this->validate();
@@ -67,9 +74,34 @@ class Main extends Component
 
     private function setDiagnoseResponseData($data)
     {
-        $this->renderImages = collect($data['images'])->map(function ($image) {
-            return "data:image/png;base64,$image";
+        $this->renderImages = collect($data['images'])->mapWithKeys(function ($image, $key) {
+            return [
+                Str::remove('Img', Str::headline($key)) => [
+                    'url' => "data:image/png;base64,$image",
+                    'visibility' => true,
+                ]
+            ];
         })->toArray();
         $this->observations = Arr::except($data, 'images');
+    }
+
+    public function allHidden()
+    {
+        return collect($this->renderImages)->every(fn ($image) => ! $image['visibility']);
+    }
+
+    public function toggleAllVisibility()
+    {
+        $visibility = $this->allHidden();
+
+        $this->renderImages = collect($this->renderImages)->map(function ($image) use ($visibility) {
+            $image['visibility'] = $visibility;
+            return $image;
+        })->toArray();
+    }
+
+    public function toggleVisibility($key)
+    {
+        $this->renderImages[$key]['visibility'] = ! $this->renderImages[$key]['visibility'];
     }
 }

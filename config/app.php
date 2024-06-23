@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'dicom_server' => env('DICOM_SERVER', 'http://localhost:5000'),
 ];

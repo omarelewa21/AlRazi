@@ -56,6 +56,12 @@ return [
             'throw' => false,
         ],
 
+        'shared' => [
+            'driver' => 'local',
+            'root' => env('SHARED_PATH', '../../shared'),
+            'throw' => false,
+        ],
+
     ],
 
     /*

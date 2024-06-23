@@ -3,9 +3,9 @@
 namespace App\Livewire\Pages\ImageDiagnose;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -52,6 +52,7 @@ class Main extends Component
     public function processDiagnosis()
     {
         $this->validate();
+        $this->processFile();
 
         // $payload = $this->getImageDiagnosePayload();
         // $data = Http::post('https://api.example.com/diagnose', $payload);
@@ -104,4 +105,25 @@ class Main extends Component
     {
         $this->renderImages[$key]['visibility'] = ! $this->renderImages[$key]['visibility'];
     }
+
+    private function processFile()
+    {
+        $fileExtension = $this->file->getClientOriginalExtension();
+        match ($fileExtension) {
+            'dcm' => $this->processDicomFile(),
+            default => $this->processImageFile(),
+        };
+    }
+
+    private function processDicomFile()
+    {
+        $this->file->storeAs('dicom', $this->file->hashName(), 'shared');
+        $response = Http::get(sprintf("%s/%s", config('app.dicom_server'), $this->file->hashName()));
+        Storage::disk('shared')->delete("dicom/{$this->file->hashName()}");
+    }
+
+    private function processImageFile()
+    {
+    }
+
 }

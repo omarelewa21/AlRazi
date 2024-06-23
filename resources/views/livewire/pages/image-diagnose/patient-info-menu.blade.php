@@ -1,9 +1,7 @@
-<div class="grid grid-cols-10 gap-4 mt-5 font-serif">
-    <!-- User Left Sidebar Input Form -->
-    <div class="col-span-2 ml-2 bg-gray-200">
-        <h3 class="text-lg bg-blue-500 mb-3 p-1 pl-2 font-semibold text-white dark:text-gray-200 leading-tight">
+<div class="col-span-2 ml-2 bg-gray-200">
+        <h2 class="text-xl bg-blue-500 mb-3 p-2 pl-2 font-semibold text-white dark:text-gray-200 leading-tight tracking-widest">
             @lang('Patient Information')
-        </h3>
+        </h2>
         <form wire:submit.prevent="processDiagnosis" class="flex flex-col p-2">
             <div>
                 <label for="name" class="font-semibold block required">@lang('Name')</label>
@@ -46,9 +44,9 @@
                 @error('referral') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
             <div class="mt-10">
-                <label for="image" class="font-semibold block required">@lang('Upload X-Ray Image')</label>
-                <input type="file" wire:model="image" required class="rounded w-full">
-                @error('image') <span class="text-red-500">{{ $message }}</span> @enderror
+                <label for="file" class="font-semibold block required">@lang('Upload X-Ray Image')</label>
+                <input type="file" wire:model="file" required class="rounded w-full">
+                @error('file') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
             <div class="mt-3">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -57,44 +55,3 @@
             </div>
         </form>
     </div>
-
-    <!-- Image Display -->
-    <div class="col-span-6 flex justify-center images-content">
-        {{-- @foreach ($responseImages as $image)
-            <img src="data:image/png;base64,{{ $image }}" alt="X-Ray Image" class="absolute">
-        @endforeach --}}
-    </div>
-
-    <!-- Right Sidebar Table Information  -->
-    <div class="col-span-2 mr-2 bg-gray-200 flex flex-col">
-        <h3 class="text-lg bg-blue-500 mb-3 p-1 pl-2 font-semibold text-white dark:text-gray-200 leading-tight">
-            @lang('Observations')
-        </h3>
-        @if (!empty($observations) && false)
-            <div class="overflow-auto mb-10 m-2">
-                <table class="table-auto w-full">
-                    <thead>
-                        <tr>
-                            <th class="border border-gray-400 px-4 py-2 text-left">@lang('Variable')</th>
-                            <th class="border border-gray-400 px-4 py-2 text-left">@lang('Observation')</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($observations as $observation)
-                            <tr>
-                                <td class="border border-gray-400 px-4 py-2 text-left">{{ $observation['variable'] }}</td>
-                                <td class="border border-gray-400 px-4 py-2 text-left text-red-600">{{ $observation['value'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
-                @lang("Generate Report")
-            </button>
-        @endif
-    </div>
-</div>
-
-

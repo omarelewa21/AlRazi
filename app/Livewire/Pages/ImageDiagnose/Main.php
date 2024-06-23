@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Pages\ImageDiagnose;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
-class DiagnoseNewImage extends Component
+class Main extends Component
 {
     use WithFileUploads;
 
@@ -31,27 +30,28 @@ class DiagnoseNewImage extends Component
     #[Validate('string|max:255')]
     public $referral = '';
 
-    #[Validate('required|image|max:1024|mimes:jpg,jpeg,png')]
-    public $image;
+    #[Validate('required|mimes:jpg,jpeg,png,dcm')]
+    public $file;
 
-    public $responseImages = [];
-    public $imageSources = [];
+    public $renderImages = [];
     public $observations = [];
+
+    public function mount()
+    {
+        $data = $this->getSampleResponse();
+        $this->setDiagnoseResponseData($data);
+    }
 
     public function processDiagnosis()
     {
         $this->validate();
 
         // $payload = $this->getImageDiagnosePayload();
-        // $response = Http::post('https://api.example.com/diagnose', $payload);
+        // $data = Http::post('https://api.example.com/diagnose', $payload);
 
         // Sample response
-        $response = file_get_contents("storage/cervical.json");
-        $response = json_decode($response, true);
-
-        $this->setDiagnoseResponseData($response);
-
-        $this->dispatch('display-images', $this->imageSources);
+        $data = $this->getSampleResponse();
+        $this->setDiagnoseResponseData($data);
     }
 
     private function getImageDiagnosePayload()
@@ -59,12 +59,17 @@ class DiagnoseNewImage extends Component
         // Prepare the payload to send to the API
     }
 
-    private function setDiagnoseResponseData($response)
+    private function getSampleResponse()
     {
-        $this->responseImages = $response['images'];
-        $this->imageSources = collect($response['images'])->map(function ($image) {
+        $response = Storage::get('sample-response.json');
+        return json_decode($response, true);
+    }
+
+    private function setDiagnoseResponseData($data)
+    {
+        $this->renderImages = collect($data['images'])->map(function ($image) {
             return "data:image/png;base64,$image";
         })->toArray();
-        $this->observations = Arr::except($response, 'images');
+        $this->observations = Arr::except($data, 'images');
     }
 }

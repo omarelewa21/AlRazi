@@ -42,6 +42,7 @@ class Main extends Component
     {
         $data = $this->getSampleResponse();
         $this->setDiagnoseResponseData($data);
+        $this->observations = $this->getObservations($data);
     }
 
     public function render()
@@ -126,4 +127,26 @@ class Main extends Component
     {
     }
 
+    private function getObservations($data)
+    {
+        return collect($data)->except('images')
+            ->mapWithKeys(function ($value, $key) {
+                $return = [];
+                foreach ($value as $k => $v) {
+                    if(is_array($v)) {
+                        $return[Str::headline($k)] = $this->formatObsArray($v);
+                    } else {
+                        $return[Str::headline($k)] = $v;
+                    }
+                }
+                return [Str::headline($key) => $return];
+            });
+    }
+
+    private function formatObsArray($array)
+    {
+        return collect($array)->map(function ($value, $key) {
+            return "<span>$key => $value</span><br>";
+        })->implode('');
+    }
 }

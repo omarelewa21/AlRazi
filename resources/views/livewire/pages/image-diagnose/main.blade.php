@@ -1,4 +1,4 @@
-<div class="grid grid-cols-10 font-serif h-full">
+<div class="grid grid-cols-10 font-serif h-full min-h-screen">
     @include('livewire.pages.image-diagnose.patient-info-menu')
 
     <!-- Image Display -->
@@ -12,7 +12,7 @@
         <div class="flex justify-center mt-5">
             @foreach ($renderImages as $image)
                 @if ($image['visibility'])
-                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute">
+                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="@if($loop->first) relative @else absolute @endif">
                 @endif
             @endforeach
         </div>

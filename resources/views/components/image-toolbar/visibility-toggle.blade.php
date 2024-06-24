@@ -61,7 +61,7 @@
             @lang('All')
         </button>
 
-        @foreach ($renderImages as  $key => $image)
+        @foreach ($images as  $key => $image)
             <button
                 wire:click="toggleVisibility('{{ $key }}')"
                 class="flex items-start items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left hover:bg-gray-50 text-lg disabled:text-gray-500"

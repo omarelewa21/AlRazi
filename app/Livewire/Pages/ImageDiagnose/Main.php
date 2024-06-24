@@ -35,7 +35,8 @@ class Main extends Component
     #[Validate('required|mimes:jpg,jpeg,png,dcm')]
     public $file;
 
-    public $renderImages = [];
+    public $images = [];
+    public $sourceImg = [];
     public $observations = [];
 
     public function mount()
@@ -76,27 +77,28 @@ class Main extends Component
 
     private function setDiagnoseResponseData($data)
     {
-        $this->renderImages = collect($data['images'])->mapWithKeys(function ($image, $key) {
-            return [
-                Str::remove('Img', Str::headline($key)) => [
+        $this->images = collect($data['images'])
+            ->mapWithKeys(fn ($image, $key) => [
+                trim(Str::remove('Img', Str::headline($key))) => [
                     'url' => "data:image/png;base64,$image",
                     'visibility' => true,
                 ]
-            ];
-        })->toArray();
+            ]);
+        $this->sourceImg = $this->images->get('Source');
+        $this->images = $this->images->except('Source')->toArray();
         $this->observations = Arr::except($data, 'images');
     }
 
     public function allHidden()
     {
-        return collect($this->renderImages)->every(fn ($image) => ! $image['visibility']);
+        return collect($this->images)->every(fn ($image) => ! $image['visibility']);
     }
 
     public function toggleAllVisibility()
     {
         $visibility = $this->allHidden();
 
-        $this->renderImages = collect($this->renderImages)->map(function ($image) use ($visibility) {
+        $this->images = collect($this->images)->map(function ($image) use ($visibility) {
             $image['visibility'] = $visibility;
             return $image;
         })->toArray();
@@ -104,7 +106,7 @@ class Main extends Component
 
     public function toggleVisibility($key)
     {
-        $this->renderImages[$key]['visibility'] = ! $this->renderImages[$key]['visibility'];
+        $this->images[$key]['visibility'] = ! $this->images[$key]['visibility'];
     }
 
     private function processFile()

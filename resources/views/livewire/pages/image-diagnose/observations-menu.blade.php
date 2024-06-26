@@ -1,5 +1,5 @@
 <!-- Right Sidebar Table Information  -->
-<div class="col-span-3 mr-2 bg-gray-200 flex flex-col">
+<div class="col-span-3 mr-2 bg-gray-200 flex flex-col overflow-y-auto max-h-screen">
     <h3 class="text-xl bg-blue-500 mb-3 p-2 pl-2 font-semibold text-white dark:text-gray-200 leading-tight tracking-widest">
         @lang('Observations')
     </h3>

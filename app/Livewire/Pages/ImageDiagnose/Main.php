@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Pages\ImageDiagnose;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -32,17 +31,18 @@ class Main extends Component
     #[Validate('string|max:255')]
     public $referral = '';
 
-    #[Validate('required|mimes:jpg,jpeg,png,dcm')]
+    #[Validate('required')]
+    #[Validate('mimes:dcm', message: 'Please provide a valid DICOM file')]
     public $file;
 
     public $images = [];
-    public $sourceImg = [];
+    public $sourceImg;
     public $observations = [];
 
     public function mount()
     {
         $data = $this->getSampleResponse();
-        $this->setDiagnoseResponseData($data);
+        // $this->setDiagnoseResponseData($data);
         $this->observations = $this->getObservations($data);
     }
 
@@ -60,8 +60,8 @@ class Main extends Component
         // $data = Http::post('https://api.example.com/diagnose', $payload);
 
         // Sample response
-        $data = $this->getSampleResponse();
-        $this->setDiagnoseResponseData($data);
+        // $data = $this->getSampleResponse();
+        // $this->setDiagnoseResponseData($data);
     }
 
     private function getImageDiagnosePayload()
@@ -77,16 +77,21 @@ class Main extends Component
 
     private function setDiagnoseResponseData($data)
     {
-        $this->images = collect($data['images'])
+        $this->images = collect($data)
+            ->filter(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
             ->mapWithKeys(fn ($image, $key) => [
                 trim(Str::remove('Img', Str::headline($key))) => [
                     'url' => "data:image/png;base64,$image",
                     'visibility' => true,
                 ]
-            ]);
-        $this->sourceImg = $this->images->get('Source');
-        $this->images = $this->images->except('Source')->toArray();
-        $this->observations = Arr::except($data, 'images');
+            ])
+            ->except('Source')
+            ->toArray();
+        // $this->observations = $this->getObservations($data);
+        // $this->sourceImg = [
+        //     'url' => "data:image/png;base64,{$this->setImageSize($data['source_img'])}",
+        //     'visibility' => true,
+        // ];
     }
 
     public function allHidden()
@@ -112,17 +117,22 @@ class Main extends Component
     private function processFile()
     {
         $fileExtension = $this->file->getClientOriginalExtension();
-        match ($fileExtension) {
+        $payload = match ($fileExtension) {
             'dcm' => $this->processDicomFile(),
             default => $this->processImageFile(),
         };
+        $this->setSourceImage($payload);
+        $response = $this->getResponse($payload);
+        $this->setDiagnoseResponseData($response);
+
     }
 
     private function processDicomFile()
     {
         $this->file->storeAs('dicom', $this->file->hashName(), 'shared');
-        $response = Http::get(sprintf("%s/%s", config('app.dicom_server'), $this->file->hashName()));
+        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_server'), $this->file->hashName()));
         Storage::disk('shared')->delete("dicom/{$this->file->hashName()}");
+        return $response->json();
     }
 
     private function processImageFile()
@@ -131,7 +141,7 @@ class Main extends Component
 
     private function getObservations($data)
     {
-        return collect($data)->except('images')
+        return collect($data)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
             ->mapWithKeys(function ($value, $key) {
                 $return = [];
                 foreach ($value as $k => $v) {
@@ -148,7 +158,45 @@ class Main extends Component
     private function formatObsArray($array)
     {
         return collect($array)->map(function ($value, $key) {
-            return "<span>$key => $value</span><br>";
+            return "<span>$key = $value</span><br>";
         })->implode('');
+    }
+
+    private function getResponse($payload)
+    {
+        $response = Http::timeout(10000)->post(env('PROCESS_SERVER'), ['image' => $this->getImageFromPayload($payload)]);
+        return $response->json();
+    }
+
+    private function getImageFromPayload($payload)
+    {
+        $image = collect($payload)
+            ->firstOrFail(fn($value, $key) => Str::contains($key, 'image'));
+        return $this->setImageSize($image);
+    }
+
+    private function setSourceImage($payload)
+    {
+        $this->sourceImg = [
+            'url' => "data:image/png;base64,{$this->getImageFromPayload($payload)}",
+            'visibility' => true,
+        ];
+    }
+
+    private function setImageSize($base64Image)
+    {
+        $image = imagecreatefromstring(base64_decode($base64Image));
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $aspectRatio = $height / $width;
+        $newHeight = 600;
+        $newWidth = $newHeight / $aspectRatio;
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        ob_start();
+        imagepng($newImage);
+        $image = ob_get_contents();
+        ob_end_clean();
+        return base64_encode($image);
     }
 }

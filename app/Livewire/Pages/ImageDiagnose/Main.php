@@ -47,9 +47,18 @@ class Main extends Component
 
     // public function mount()
     // {
+    //     $this->dicomData = $this->getSampleResponse1();
     //     $data = $this->getSampleResponse();
+    //     $this->setSourceImage();
+    //     $this->setDiagnoseImages($data);
     //     $this->setObservations($data);
     // }
+
+    private function getSampleResponse1()
+    {
+        $response = Storage::get('response.json');
+        return json_decode($response, true);
+    }
 
     // To be removed
     private function getSampleResponse()
@@ -179,19 +188,27 @@ class Main extends Component
         $newHeight = 600;
         $newWidth = $newHeight / $aspectRatio;
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency
+        imagealphablending($newImage, false);
+        imagesavealpha($newImage, true);
+        $transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
+        imagefill($newImage, 0, 0, $transparent);
+        imagecolortransparent($newImage, $transparent);
+
         imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
         ob_start();
         imagepng($newImage);
-        $image = ob_get_contents();
+        $imageData = ob_get_contents();
         ob_end_clean();
-        $this->sourceImg['width'] = $newWidth;
-        $this->sourceImg['height'] = $newHeight;
-        return base64_encode($image);
+        return base64_encode($imageData);
     }
+
 
     public function updatedFile()
     {
         $this->validateOnly('file');
+        $this->resetDiganoseData();
         $this->dicomData = match ($this->file->getClientOriginalExtension()) {
             'dcm' => $this->parseDicomFile(),
             default => $this->parseDicomFile(),
@@ -221,5 +238,30 @@ class Main extends Component
 
         return response()->file(Storage::disk('public')->path($this->report),
             ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="report.pdf"']);
+        $response = Http::timeout(10000)
+            ->post(config('app.process_server') . '/report', [
+                'result' => $this->payloadObservations,
+            ]);
+        $fileContents = $response->body();
+        $fileName = 'report.pdf';
+        Storage::disk('local')->put($fileName, $fileContents);
+
+        // Prepare the headers
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"'
+        ];
+
+        return response()->file(storage_path('app/'.$fileName), $headers);
+    }
+
+
+    public function resetDiganoseData()
+    {
+        $this->diagnoseImages = [];
+        $this->sourceImg = null;
+        $this->observations = [];
+        $this->payloadObservations = [];
+        $this->dicomData = null;
     }
 }

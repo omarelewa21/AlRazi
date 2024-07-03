@@ -9,13 +9,12 @@ Schedule::call(function () {
     $now = Carbon::now();
 
     foreach ($files as $file) {
-        if (pathinfo($file, PATHINFO_EXTENSION) === 'pdf') {
-            $lastModified = Carbon::createFromTimestamp(Storage::disk('public')->lastModified($file));
-            $diffInDays = $now->diffInDays($lastModified);
+        $lastModified = Carbon::createFromTimestamp(Storage::disk('public')->lastModified($file));
+        $diffInDays = $now->diffInDays($lastModified);
 
-            if ($diffInDays > 1) {
-                Storage::disk('public')->delete($file);
-            }
+        if ($diffInDays > 1) {
+            Storage::disk('public')->delete("$file");
         }
+
     }
 })->everyFourHours();

@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    use DiagnoseTester;
+    // use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -71,7 +71,7 @@ class Main extends Component
         $this->setDiagnoseImages($data);
         $this->setPayloadObservations($data);
         $this->setObservations($data);
-        $this->dispatchSelf('generate-report');
+        $this->dispatch('generate-report');
     }
 
     private function setDiagnoseImages($data)
@@ -198,8 +198,9 @@ class Main extends Component
     #[On('generate-report')]
     public function generateReport()
     {
-        GenerateReport::dispatch($this->file->hashName(), $this->payloadObservations);
-        $this->report = "reports/{$this->file->hashName()}.pdf";
+        $fileName = sprintf("%s.pdf", pathinfo($this->file->hashName(), PATHINFO_FILENAME));
+        GenerateReport::dispatch($fileName, $this->payloadObservations);
+        $this->report = "reports/{$fileName}";
     }
 
     public function showReport()

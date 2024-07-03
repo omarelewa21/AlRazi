@@ -1,5 +1,5 @@
 <!-- Right Sidebar Table Information  -->
-<div class="col-span-3 mr-2 bg-gray-200 flex flex-col overflow-y-auto max-h-screen">
+<div class="col-span-2 mr-2 bg-gray-200 flex flex-col overflow-y-auto max-h-screen">
     <h3 class="text-xl bg-blue-500 mb-3 p-2 pl-2 font-semibold text-white dark:text-gray-200 leading-tight tracking-widest">
         @lang('Observations')
     </h3>
@@ -41,7 +41,7 @@
             @endforeach
         </div>
 
-        <button wire:click='generateReport' class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
+        <button wire:click='showReport' class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
             @lang("Generate Report")
         </button>
     @endif

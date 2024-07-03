@@ -1,7 +1,7 @@
 <div class="grid grid-cols-10 font-serif h-full min-h-screen">
     @include('livewire.pages.image-diagnose.patient-info-menu')
     <!-- Image Display -->
-    <div class="col-span-5 overflow-hidden">
+    <div class="col-span-6 overflow-hidden">
         <!-- Toolbar -->
         <div class="flex justify-center bg-gray-200 p-2 min-h-12">
             @if(!empty($diagnoseImages))
@@ -26,7 +26,7 @@
     </div>
 
     @include('livewire.pages.image-diagnose.observations-menu')
-    <div wire:loading wire:target="processDiagnosis, file, generateReport">
+    <div wire:loading wire:target="processDiagnosis, file, showReport">
         <x-loading />
     </div>
 </div>

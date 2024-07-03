@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\ImageDiagnose;
 
 use App\Jobs\GenerateReport;
+use App\Traits\DiagnoseTester;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
+    use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -45,28 +47,6 @@ class Main extends Component
     public $response;
     public $report;
 
-    // public function mount()
-    // {
-    //     $this->dicomData = $this->getSampleResponse1();
-    //     $data = $this->getSampleResponse();
-    //     $this->setSourceImage();
-    //     $this->setDiagnoseImages($data);
-    //     $this->setObservations($data);
-    // }
-
-    private function getSampleResponse1()
-    {
-        $response = Storage::get('response.json');
-        return json_decode($response, true);
-    }
-
-    // To be removed
-    private function getSampleResponse()
-    {
-        $response = Storage::get('sample-response.json');
-        return json_decode($response, true);
-    }
-
     public function processDiagnosis()
     {
         $this->validate();
@@ -82,7 +62,7 @@ class Main extends Component
     private function getDiagnosis()
     {
         $response = Http::timeout(10000)
-            ->post(env('PROCESS_SERVER') . '/analyze', ['image' => $this->getSourceImageFromDicomData()]);
+            ->post(config("app.process_server") . '/analyze', ['image' => $this->getSourceImageFromDicomData()]);
         return $response->json();
     }
 
@@ -153,7 +133,7 @@ class Main extends Component
     private function parseDicomFile()
     {
         $this->file->storeAs('dicom', $this->file->hashName(), 'shared');
-        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_server'), $this->file->hashName()));
+        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $this->file->hashName()));
         Storage::disk('shared')->delete("dicom/{$this->file->hashName()}");
         return $response->json();
     }
@@ -246,7 +226,7 @@ class Main extends Component
         $this->observations = [];
         $this->payloadObservations = [];
         $this->dicomData = null;
-        $this->deleteReport();
+        if($this->report) $this->deleteReport();
     }
 
     public function deleteReport()

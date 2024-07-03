@@ -204,7 +204,6 @@ class Main extends Component
         return base64_encode($imageData);
     }
 
-
     public function updatedFile()
     {
         $this->validateOnly('file');
@@ -238,23 +237,7 @@ class Main extends Component
 
         return response()->file(Storage::disk('public')->path($this->report),
             ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="report.pdf"']);
-        $response = Http::timeout(10000)
-            ->post(config('app.process_server') . '/report', [
-                'result' => $this->payloadObservations,
-            ]);
-        $fileContents = $response->body();
-        $fileName = 'report.pdf';
-        Storage::disk('local')->put($fileName, $fileContents);
-
-        // Prepare the headers
-        $headers = [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$fileName.'"'
-        ];
-
-        return response()->file(storage_path('app/'.$fileName), $headers);
     }
-
 
     public function resetDiganoseData()
     {
@@ -263,5 +246,13 @@ class Main extends Component
         $this->observations = [];
         $this->payloadObservations = [];
         $this->dicomData = null;
+        $this->deleteReport();
+    }
+
+    public function deleteReport()
+    {
+        if(Storage::disk('public')->exists($this->report)) {
+            Storage::disk('public')->delete($this->report);
+        }
     }
 }

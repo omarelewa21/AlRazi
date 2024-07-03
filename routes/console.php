@@ -1,8 +1,21 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
+Schedule::call(function () {
+    $files = Storage::disk('public')->files('reports');
+    $now = Carbon::now();
+
+    foreach ($files as $file) {
+        if (pathinfo($file, PATHINFO_EXTENSION) === 'pdf') {
+            $lastModified = Carbon::createFromTimestamp(Storage::disk('public')->lastModified($file));
+            $diffInDays = $now->diffInDays($lastModified);
+
+            if ($diffInDays > 1) {
+                Storage::disk('public')->delete($file);
+            }
+        }
+    }
+})->everyFourHours();

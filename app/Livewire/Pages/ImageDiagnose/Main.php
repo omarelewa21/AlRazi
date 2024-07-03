@@ -149,7 +149,7 @@ class Main extends Component
     private function parseDicomFile()
     {
         $this->file->storeAs('dicom', $this->file->hashName(), 'shared');
-        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $this->file->hashName()));
+        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_server'), $this->file->hashName()));
         Storage::disk('shared')->delete("dicom/{$this->file->hashName()}");
         return $response->json();
     }

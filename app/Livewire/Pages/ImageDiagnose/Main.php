@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Pages\ImageDiagnose;
 
+use App\Jobs\GenerateReport;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -41,6 +43,7 @@ class Main extends Component
     public $payloadObservations = [];
     public $dicomData;
     public $response;
+    public $report;
 
     // public function mount()
     // {
@@ -79,6 +82,7 @@ class Main extends Component
         $this->setDiagnoseImages($data);
         $this->setPayloadObservations($data);
         $this->setObservations($data);
+        $this->dispatchSelf('generate-report');
     }
 
     private function setDiagnoseImages($data)
@@ -195,14 +199,27 @@ class Main extends Component
         $this->setSourceImage();
     }
 
+    #[On('generate-report')]
     public function generateReport()
     {
-        $response = Http::timeout(10000)
-            ->post(env('PROCESS_SERVER') . '/report', [
-                'result' => $this->payloadObservations,
-            ]);
-        $fileContents = $response->body();
-        Storage::disk('local')->put('report.pdf', $fileContents);
-        return response()->download(storage_path('app/report.pdf'));
+        GenerateReport::dispatch($this->file->hashName(), $this->payloadObservations);
+        $this->report = "reports/{$this->file->hashName()}.pdf";
+    }
+
+    public function showReport()
+    {
+        $maxExecTimesExceeded = 15;
+        $counter = 0;
+
+        while($counter < $maxExecTimesExceeded && !Storage::disk('public')->exists($this->report)) {
+            sleep(2);
+        }
+
+        if(!Storage::disk('public')->exists($this->report)) {
+            dd('Report not found');
+        }
+
+        return response()->file(Storage::disk('public')->path($this->report),
+            ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="report.pdf"']);
     }
 }

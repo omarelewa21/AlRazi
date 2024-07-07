@@ -1,27 +1,30 @@
-<div class="grid grid-cols-10 font-serif h-full min-h-screen">
+<div class="grid grid-cols-12 font-serif h-full min-h-screen">
     @include('livewire.pages.image-diagnose.patient-info-menu')
     <!-- Image Display -->
-    <div class="col-span-6 overflow-hidden">
+    <div class="col-span-8 overflow-hidden">
         <!-- Toolbar -->
         <div class="flex justify-center bg-gray-200 p-2 min-h-12">
             @if(!empty($diagnoseImages))
-                <x-image-toolbar.visibility-toggle :$diagnoseImages/>
+                @include('components.image-toolbar.visibility-toggle')
             @endif
-            <x-image-toolbar.length />
+
+            @if ($sourceImg)
+                @include('components.image-toolbar.zoom')
+            @endif
         </div>
 
-        <div class="flex justify-center mt-5" id="image-container" x-data="{imgWidth: 0, imgHeight: 0}">
+        <div class="flex justify-center mt-5" id="image-container" x-ref="image-container" x-data="{imgWidth: 0, imgHeight: 0}">
             @if ($sourceImg)
-                <img src="{{ $sourceImg['url'] }}" alt="X-Ray Image" class="relative" id="annotate-image"
+                <img src="{{ $sourceImg['url'] }}" alt="X-Ray Image" class="relative box-1-image" id="source-image" x-ref="source-image"
                     x-init="imgWidth = $el.width; imgHeight = $el.height;"
                 >
             @endif
             @foreach ($diagnoseImages as $image)
                 @if ($image['visibility'])
-                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute">
+                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute box-1-image">
                 @endif
             @endforeach
-            <svg id="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
+            <svg id="annotation-svg" x-ref="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
         </div>
     </div>
 
@@ -33,7 +36,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const imageContainer = document.getElementById('image-container');
-        const image = document.getElementById('annotate-image');
+        const image = document.getElementById('source-image');
         const svg = document.getElementById('annotation-svg');
         let points = [];
         let isDragging = false;
@@ -145,6 +148,33 @@
                 x: event.clientX - svgRect.left,
                 y: event.clientY - svgRect.top
             };
+        }
+
+        function zoomIn() {
+            const images = document.querySelectorAll('.box-1-image');
+            const imageContainer = document.getElementById('image-container');
+            const maxWidth = imageContainer.clientWidth;
+            images.forEach(image => {
+                const currentWidth = image.width;
+                const currentHeight = image.height;
+                image.width = currentWidth * 1.1;
+                image.height = currentHeight * 1.1;
+                if (currentWidth > maxWidth) {
+                    image.width = maxWidth;
+                    image.height = currentHeight * (maxWidth / currentWidth);
+                }
+            });
+        }
+
+        function zoomOut() {
+            const images = document.querySelectorAll('.box-1-image');
+            images.forEach(image => {
+                const currentWidth = image.width;
+                const currentHeight = image.height;
+
+                image.width = currentWidth / 1.1;
+                image.height = currentHeight / 1.1;
+            });
         }
     });
 </script>

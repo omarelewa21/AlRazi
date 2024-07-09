@@ -36,7 +36,8 @@
     </div>
 
     @include('livewire.pages.image-diagnose.observations-menu')
-    <div wire:loading wire:target="files, showReport">
+
+    <div wire:loading wire:target="processDiagnosis, files, showReport">
         <x-loading />
     </div>
 </div>

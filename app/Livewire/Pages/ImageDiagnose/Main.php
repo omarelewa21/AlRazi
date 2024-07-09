@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    // use DiagnoseTester;
+    use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -36,17 +36,29 @@ class Main extends Component
     public $referral = '';
 
     #[Validate('required')]
-    #[Validate('mimes:dcm', message: 'Please provide a valid DICOM file')]
-    public $file;
+    #[Validate(['files.*' => 'file|mimes:dcm'])]
+    public $files;
 
     public $diagnoseImages = [];
-    public $sourceImg;
+    public $sourceImgs = [];
     public $observations = [];
     public $payloadObservations = [];
-    public $dicomData;
+    public $dicomData = [];
     public $response;
     public $report;
 
+    // First Step
+    public function updatedFiles()
+    {
+        $this->validateOnly('files');
+        $this->resetDiganoseData();
+        foreach ($this->files as $file) {
+            $this->dicomData[] = $this->parseDicomFile($file);
+        }
+        $this->setSourceImages();
+    }
+
+    // Second Step
     public function processDiagnosis()
     {
         $this->validate();
@@ -59,13 +71,26 @@ class Main extends Component
         $this->setDiagnoseData($response);
     }
 
+    // Third Step
     private function getDiagnosis()
     {
         $response = Http::timeout(10000)
-            ->post(config("app.process_server") . '/analyze', ['image' => $this->getSourceImageFromDicomData()]);
+            ->post(config("app.process_server") . '/analyze', $this->getPayloadForDiagnosis());
         return $response->json();
     }
 
+    private function getPayloadForDiagnosis()
+    {
+        return collect($this->dicomData)->mapWithKeys(
+            fn ($data, $index) => ["image_" . $index+1 => [
+                "image" => $this->getSourceImageFromDicomData($data),
+                "pixel_scale" => $data['pixel_scale'],
+            ]]
+        )
+        ->toArray();
+    }
+
+    // Fourth Step
     private function setDiagnoseData($data)
     {
         $this->setDiagnoseImages($data);
@@ -74,40 +99,49 @@ class Main extends Component
         $this->dispatch('generate-report');
     }
 
-    private function setDiagnoseImages($data)
+    // Fifth Step
+    private function setDiagnoseImages($diagnoseData)
     {
-        $this->diagnoseImages = collect($data)
-            ->filter(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
-            ->mapWithKeys(fn ($image, $key) => [
-                trim(Str::remove('Img', Str::headline($key))) => [
-                    'url' => "data:image/png;base64,{$this->setImageSize($image)}",
-                    'visibility' => true,
-                ]
-            ])
-            ->except('Source')
-            ->toArray();
+        foreach($diagnoseData as $key => $data) {
+            $this->diagnoseImages[$key] = collect($data)
+                ->filter(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
+                ->mapWithKeys(fn ($image, $key) => [
+                    trim(Str::remove('Img', Str::headline($key))) => [
+                        'url' => "data:image/png;base64,{$this->setImageSize($image)}",
+                        'visibility' => true,
+                    ]
+                ])
+                ->except('Source')
+                ->toArray();
+        }
     }
 
-    private function setPayloadObservations($data)
+    // Sixth Step
+    private function setPayloadObservations($diagnoseData)
     {
-        $this->payloadObservations = collect($data)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
-            ->toArray();
+        foreach($diagnoseData as $key => $data) {
+            $this->payloadObservations[$key] = collect($data)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
+                ->toArray();
+        }
     }
 
+    // Seventh Step
     private function setObservations($data)
     {
-        $this->observations = collect($data)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
-            ->mapWithKeys(function ($value, $key) {
-                $return = [];
-                foreach ($value as $k => $v) {
-                    if(is_array($v)) {
-                        $return[Str::headline($k)] = $this->formatObsArray($v);
-                    } else {
-                        $return[Str::headline($k)] = $v;
+        foreach($data as $key => $item) {
+            $this->observations[Str::headline($key)] = collect($item)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
+                ->mapWithKeys(function ($value, $key) {
+                    $return = [];
+                    foreach ($value as $k => $v) {
+                        if(is_array($v)) {
+                            $return[Str::headline($k)] = $this->formatObsArray($v);
+                        } else {
+                            $return[Str::headline($k)] = $v;
+                        }
                     }
-                }
-                return [Str::headline($key) => $return];
-            });
+                    return [Str::headline($key) => $return];
+                });
+        }
     }
 
     public function allHidden()
@@ -130,11 +164,11 @@ class Main extends Component
         $this->diagnoseImages[$key]['visibility'] = ! $this->diagnoseImages[$key]['visibility'];
     }
 
-    private function parseDicomFile()
+    private function parseDicomFile($file)
     {
-        $this->file->storeAs('dicom', $this->file->hashName(), 'shared');
-        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $this->file->hashName()));
-        Storage::disk('shared')->delete("dicom/{$this->file->hashName()}");
+        $file->storeAs('dicom', $file->hashName(), 'shared');
+        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $file->hashName()));
+        Storage::disk('shared')->delete("dicom/{$file->hashName()}");
         return $response->json();
     }
 
@@ -145,18 +179,19 @@ class Main extends Component
         })->implode('');
     }
 
-    private function getSourceImageFromDicomData()
+    private function setSourceImages()
     {
-        return collect($this->dicomData)
-            ->firstOrFail(fn($value, $key) => Str::contains($key, 'image'));
+        foreach($this->dicomData as $index => $data) {
+            $this->sourceImgs['image_' . $index+1] = [
+                'url' => "data:image/png;base64,{$this->setImageSize($this->getSourceImageFromDicomData($data))}",
+                'visibility' => true,
+            ];
+        }
     }
 
-    private function setSourceImage()
+    private function getSourceImageFromDicomData($data)
     {
-        $this->sourceImg = [
-            'url' => "data:image/png;base64,{$this->setImageSize($this->getSourceImageFromDicomData())}",
-            'visibility' => true,
-        ];
+        return collect($data)->firstOrFail(fn($value, $key) => Str::contains($key, 'image'));
     }
 
     private function setImageSize($base64Image)
@@ -165,7 +200,7 @@ class Main extends Component
         $width = imagesx($image);
         $height = imagesy($image);
         $aspectRatio = $height / $width;
-        $newHeight = 600;
+        $newHeight = 680;
         $newWidth = $newHeight / $aspectRatio;
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
 
@@ -184,21 +219,11 @@ class Main extends Component
         return base64_encode($imageData);
     }
 
-    public function updatedFile()
-    {
-        $this->validateOnly('file');
-        $this->resetDiganoseData();
-        $this->dicomData = match ($this->file->getClientOriginalExtension()) {
-            'dcm' => $this->parseDicomFile(),
-            default => $this->parseDicomFile(),
-        };
-        $this->setSourceImage();
-    }
-
     #[On('generate-report')]
     public function generateReport()
     {
-        $fileName = sprintf("%s.pdf", pathinfo($this->file->hashName(), PATHINFO_FILENAME));
+        $randomString = Str::random(10);
+        $fileName = sprintf("%s.pdf", $randomString);
         GenerateReport::dispatch($fileName, $this->payloadObservations);
         $this->report = "reports/{$fileName}";
     }
@@ -222,11 +247,8 @@ class Main extends Component
 
     public function resetDiganoseData()
     {
-        $this->diagnoseImages = [];
-        $this->sourceImg = null;
-        $this->observations = [];
-        $this->payloadObservations = [];
-        $this->dicomData = null;
+        $this->dicomData = [];
+        $this->sourceImgs = [];
         if($this->report) $this->deleteReport();
     }
 

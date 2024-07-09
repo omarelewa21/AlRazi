@@ -1,35 +1,42 @@
-<div class="grid grid-cols-12 font-serif h-full min-h-screen">
+<div class="grid grid-cols-12 font-serif h-full min-h-screen"
+    x-init="document.body.style.zoom = '67%'; document.body.style.overflow = 'hidden';"
+>
     @include('livewire.pages.image-diagnose.patient-info-menu')
     <!-- Image Display -->
-    <div class="col-span-8 overflow-hidden">
+    <div class="col-span-7 overflow-hidden">
         <!-- Toolbar -->
         <div class="flex justify-center bg-gray-200 p-2 min-h-12">
-            @if(!empty($diagnoseImages))
+            {{-- @if(!empty($diagnoseImages))
                 @include('components.image-toolbar.visibility-toggle')
-            @endif
+            @endif --}}
 
-            @if ($sourceImg)
+            {{-- @if ($sourceImg)
                 @include('components.image-toolbar.zoom')
-            @endif
+            @endif --}}
         </div>
 
-        <div class="flex justify-center mt-5" id="image-container" x-ref="image-container" x-data="{imgWidth: 0, imgHeight: 0}">
-            @if ($sourceImg)
-                <img src="{{ $sourceImg['url'] }}" alt="X-Ray Image" class="relative box-1-image" id="source-image" x-ref="source-image"
-                    x-init="imgWidth = $el.width; imgHeight = $el.height;"
-                >
-            @endif
-            @foreach ($diagnoseImages as $image)
-                @if ($image['visibility'])
-                    <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute box-1-image">
-                @endif
+        <div class="flex flex-row flex-wrap justify-center mt-5">
+            @foreach ($sourceImgs as $key => $sourceImg)
+                <div class="flex justify-center" id="image-container" x-ref="image-container" x-data="{imgWidth: 0, imgHeight: 0}">
+                    <img src="{{ $sourceImg['url'] }}" alt="X-Ray Image" class="relative box-1-image" id="source-image" x-ref="source-image"
+                        x-init="imgWidth = $el.width; imgHeight = $el.height;"
+                    >
+                    @if(array_key_exists($key, $diagnoseImages))
+                    @foreach ($diagnoseImages[$key] as $image)
+                        @if ($image['visibility'])
+                            <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute box-1-image">
+                        @endif
+                    @endforeach
+                    @endif
+                    <svg id="annotation-svg" x-ref="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
+                </div>
             @endforeach
-            <svg id="annotation-svg" x-ref="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
         </div>
+
     </div>
 
     @include('livewire.pages.image-diagnose.observations-menu')
-    <div wire:loading wire:target="processDiagnosis, file, showReport">
+    <div wire:loading wire:target="files, showReport">
         <x-loading />
     </div>
 </div>

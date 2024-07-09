@@ -66,7 +66,9 @@
         </div>
     @endforeach
 
-    <button wire:click='showReport' class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
-        @lang("Generate Report")
-    </button>
+    @if(!empty($observations))
+        <button wire:click='showReport' class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded">
+            @lang("Generate Report")
+        </button>
+    @endif
 </div>

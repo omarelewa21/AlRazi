@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    use DiagnoseTester;
+    // use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -68,6 +68,9 @@ class Main extends Component
     private function processFile()
     {
         $response = $this->getDiagnosis();
+        foreach($response as $key => $data) {
+            $response[$key] = json_decode($data, true);
+        }
         $this->setDiagnoseData($response);
     }
 
@@ -94,8 +97,8 @@ class Main extends Component
     private function setDiagnoseData($data)
     {
         $this->setDiagnoseImages($data);
-        $this->setPayloadObservations($data);
         $this->setObservations($data);
+        $this->setPayloadObservations($data);
         $this->dispatch('generate-report');
     }
 
@@ -103,8 +106,7 @@ class Main extends Component
     private function setDiagnoseImages($diagnoseData)
     {
         foreach($diagnoseData as $key => $data) {
-            $this->diagnoseImages[$key] = collect($data)
-                ->filter(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
+            $this->diagnoseImages[$key] = collect($data['images'])
                 ->mapWithKeys(fn ($image, $key) => [
                     trim(Str::remove('Img', Str::headline($key))) => [
                         'url' => "data:image/png;base64,{$this->setImageSize($image)}",
@@ -117,19 +119,11 @@ class Main extends Component
     }
 
     // Sixth Step
-    private function setPayloadObservations($diagnoseData)
+    private function setObservations($diagnoseData)
     {
         foreach($diagnoseData as $key => $data) {
-            $this->payloadObservations[$key] = collect($data)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
-                ->toArray();
-        }
-    }
-
-    // Seventh Step
-    private function setObservations($data)
-    {
-        foreach($data as $key => $item) {
-            $this->observations[Str::headline($key)] = collect($item)->reject(fn ($value, $key) => Str::contains($key, ['img', 'all_layers']))
+            $this->observations[Str::headline($key)] = collect($data['observations'])
+                ->except('view')
                 ->mapWithKeys(function ($value, $key) {
                     $return = [];
                     foreach ($value as $k => $v) {
@@ -142,6 +136,16 @@ class Main extends Component
                     return [Str::headline($key) => $return];
                 });
         }
+    }
+
+    // Seventh Step
+    private function setPayloadObservations($diagnoseData)
+    {
+        foreach($diagnoseData as $key => $data) {
+            $this->payloadObservations[$key]['observations'] = collect($data['observations'])->toArray();
+        }
+        $json = json_encode($this->payloadObservations, JSON_PRETTY_PRINT);
+        Storage::disk('local')->put("payload_observations.json", $json);
     }
 
     public function allHidden()
@@ -249,6 +253,10 @@ class Main extends Component
     {
         $this->dicomData = [];
         $this->sourceImgs = [];
+        $this->diagnoseImages = [];
+        $this->observations = [];
+        $this->payloadObservations = [];
+        $this->report = null;
         if($this->report) $this->deleteReport();
     }
 

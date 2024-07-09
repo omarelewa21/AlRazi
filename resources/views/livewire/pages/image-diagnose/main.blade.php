@@ -1,6 +1,4 @@
-<div class="grid grid-cols-12 font-serif h-full min-h-screen"
-    x-init="document.body.style.zoom = '67%'; document.body.style.overflow = 'hidden';"
->
+<div class="grid grid-cols-12 font-serif h-full min-h-screen">
     @include('livewire.pages.image-diagnose.patient-info-menu')
     <!-- Image Display -->
     <div class="col-span-7 overflow-hidden">

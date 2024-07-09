@@ -45,7 +45,7 @@
             </div>
             <div class="mt-10">
                 <label for="file" class="font-semibold block required">@lang('Upload X-Ray Image')</label>
-                <input type="file" wire:model="file" required class="rounded w-full">
+                <input type="file" wire:model="files" required class="rounded w-full" multiple>
                 @error('file') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
             <div class="mt-3">

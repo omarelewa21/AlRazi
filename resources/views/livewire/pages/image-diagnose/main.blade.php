@@ -1,4 +1,4 @@
-<div class="grid grid-cols-12 font-serif h-full min-h-screen">
+<div class="grid grid-cols-12 font-serif h-full min-h-screen" x-data="diagnoseImage()">
     @include('livewire.pages.image-diagnose.patient-info-menu')
     <!-- Image Display -->
     <div class="col-span-7 overflow-hidden">
@@ -8,14 +8,16 @@
                 @include('components.image-toolbar.visibility-toggle')
             @endif --}}
 
-            {{-- @if ($sourceImg)
+            @if (!empty($sourceImgs))
                 @include('components.image-toolbar.zoom')
-            @endif --}}
+            @endif
         </div>
 
-        <div class="flex flex-row flex-wrap justify-center mt-5">
+        <div class="flex flex-row flex-wrap justify-center mt-5" x-ref="imagesContainer">
             @foreach ($sourceImgs as $key => $sourceImg)
-                <div class="flex justify-center" id="image-container" x-ref="image-container" x-data="{imgWidth: 0, imgHeight: 0}">
+                <div class="flex justify-center image-container" id="image-container" x-data="{imgWidth: 0, imgHeight: 0}"
+                    @wheel.throttle.prevent="zoom"
+                >
                     <img src="{{ $sourceImg['url'] }}" alt="X-Ray Image" class="relative box-1-image" id="source-image" x-ref="source-image"
                         x-init="imgWidth = $el.width; imgHeight = $el.height;"
                     >
@@ -154,33 +156,6 @@
                 x: event.clientX - svgRect.left,
                 y: event.clientY - svgRect.top
             };
-        }
-
-        function zoomIn() {
-            const images = document.querySelectorAll('.box-1-image');
-            const imageContainer = document.getElementById('image-container');
-            const maxWidth = imageContainer.clientWidth;
-            images.forEach(image => {
-                const currentWidth = image.width;
-                const currentHeight = image.height;
-                image.width = currentWidth * 1.1;
-                image.height = currentHeight * 1.1;
-                if (currentWidth > maxWidth) {
-                    image.width = maxWidth;
-                    image.height = currentHeight * (maxWidth / currentWidth);
-                }
-            });
-        }
-
-        function zoomOut() {
-            const images = document.querySelectorAll('.box-1-image');
-            images.forEach(image => {
-                const currentWidth = image.width;
-                const currentHeight = image.height;
-
-                image.width = currentWidth / 1.1;
-                image.height = currentHeight / 1.1;
-            });
         }
     });
 </script>

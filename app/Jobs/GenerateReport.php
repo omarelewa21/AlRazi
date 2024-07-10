@@ -27,9 +27,7 @@ class GenerateReport implements ShouldQueue
     public function handle(): void
     {
         $response = Http::timeout(10000)
-            ->post(env('PROCESS_SERVER') . '/report', [
-                'result' => $this->payloadObservations,
-            ]);
+            ->post(env('PROCESS_SERVER') . '/report', $this->payloadObservations);
         Storage::disk('public')->put("reports/{$this->fileName}", $response->body());
     }
 }

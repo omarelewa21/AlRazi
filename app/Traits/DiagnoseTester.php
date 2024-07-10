@@ -31,7 +31,7 @@ trait DiagnoseTester
     {
         foreach ($data as $key => $item) {
             $this->sourceImgs[$key] = [
-                'url' => "data:image/png;base64,{$this->setImageSize($item['source_img'])}",
+                'url' => "data:image/png;base64,{$this->setImageSize($item['images']['source_img'])}",
                 'visibility' => true,
             ];
         }

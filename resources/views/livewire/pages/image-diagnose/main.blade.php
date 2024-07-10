@@ -4,9 +4,9 @@
     <div class="col-span-7 overflow-hidden">
         <!-- Toolbar -->
         <div class="flex justify-center bg-gray-200 p-2 min-h-12">
-            {{-- @if(!empty($diagnoseImages))
+            @if(!empty($diagnoseImages))
                 @include('components.image-toolbar.visibility-toggle')
-            @endif --}}
+            @endif
 
             @if (!empty($sourceImgs))
                 @include('components.image-toolbar.zoom')
@@ -22,11 +22,14 @@
                         x-init="imgWidth = $el.width; imgHeight = $el.height;"
                     >
                     @if(array_key_exists($key, $diagnoseImages))
-                    @foreach ($diagnoseImages[$key] as $image)
-                        @if ($image['visibility'])
-                            <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute box-1-image">
-                        @endif
-                    @endforeach
+                        @foreach ($diagnoseImages[$key] as $k => $image)
+                            @if ($image['visibility'])
+                                <img src="{{ $image['url'] }}" alt="X-Ray Image" class="absolute box-1-image"
+                                    x-init="images['{{ "$key.$k" }}'] = true"
+                                    x-show="images['{{ "$key.$k" }}']"
+                                >
+                            @endif
+                        @endforeach
                     @endif
                     <svg id="annotation-svg" x-ref="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
                 </div>

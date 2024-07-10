@@ -2,6 +2,8 @@ import './bootstrap';
 
 document.addEventListener("alpine:init", () => {
     Alpine.data('diagnoseImage', () => ({
+        images: [],
+        allImagesHidden: [],
         init: function () {
             document.body.style.zoom = '75%';
         },
@@ -28,5 +30,18 @@ document.addEventListener("alpine:init", () => {
                 image.height = image.height / 1.1;
             });
         },
+        toggleVisibility: function (index) {
+            const firstKey = index.split('.')[0]
+            this.images[index] = !this.images[index];
+            this.allImagesHidden[firstKey] = Object.entries(this.images)
+                .filter(([key, value]) => key.startsWith(firstKey))
+                .every(([key, value]) => !value);
+        },
+        toggleAllVisibility: function (firstKey) {
+            Object.entries(this.images)
+                .filter(([image, value]) => image.startsWith(firstKey))
+                .forEach(([key, value]) => this.images[key] = this.allImagesHidden[firstKey]);
+            this.allImagesHidden[firstKey] = !this.allImagesHidden[firstKey];
+        }
     }));
 });

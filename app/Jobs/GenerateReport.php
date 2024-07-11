@@ -26,6 +26,22 @@ class GenerateReport implements ShouldQueue
      */
     public function handle(): void
     {
+        if(count($this->payloadObservations) > 1) {
+            $this->sendForMultipleFiles();
+        } else {
+            $this->sendForSingleFile();
+        }
+    }
+
+    private function sendForMultipleFiles(): void
+    {
+        $response = Http::timeout(10000)
+            ->post(env('PROCESS_SERVER') . '/full_report', $this->payloadObservations);
+        Storage::disk('public')->put("reports/{$this->fileName}", $response->body());
+    }
+
+    private function sendForSingleFile(): void
+    {
         $response = Http::timeout(10000)
             ->post(env('PROCESS_SERVER') . '/report', $this->payloadObservations);
         Storage::disk('public')->put("reports/{$this->fileName}", $response->body());

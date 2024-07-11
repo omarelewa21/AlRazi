@@ -16,7 +16,7 @@
     @foreach ($observations as $title => $observation)
         <div class="overflow-auto mb-4 m-2 overflow-y-auto max-h-screen text-2xl font-sans border p-2 border-black divide-y-4">
             <div class="flex justify-between" :class="blockCollapse['{{$title}}'] && 'mb-4 border-b-2 border-black pb-2'" x-init="blockCollapse['{{$title}}'] = false">
-                <h1> {{$title}} </h1>
+                <h1> {{$views[$title]}} </h1>
                 <button @click="showOnlyThisBlock('{{$title}}');">
                     <template x-if="blockCollapse['{{$title}}']">
                         <x-icons.minus />

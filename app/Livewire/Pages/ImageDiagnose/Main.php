@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    use DiagnoseTester;
+    // use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -45,6 +45,8 @@ class Main extends Component
     public $dicomData = [];
     public $response;
     public $report;
+    public $views = [];
+    public $payloadForReport = [];
 
     // First Step
     public function updatedFiles()
@@ -96,6 +98,7 @@ class Main extends Component
     private function setDiagnoseData($data)
     {
         $this->setDiagnoseImages($data);
+        $this->setPayloadForReport($data);
         $this->setObservations($data);
         $this->dispatch('generate-report');
     }
@@ -120,7 +123,8 @@ class Main extends Component
     private function setObservations($diagnoseData)
     {
         foreach($diagnoseData as $key => $data) {
-            $this->observations[Str::headline($key)] = collect($data['observations'])
+            $this->views[$key] = Str::headline($data['observations']['view']);
+            $this->observations[$key] = collect($data['observations'])
                 ->except('view')
                 ->mapWithKeys(function ($value, $key) {
                     $return = [];
@@ -216,15 +220,26 @@ class Main extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
+        Storage::disk('local')->put("test.json", json_encode($this->getPayloadForReport(), JSON_PRETTY_PRINT));
         GenerateReport::dispatch($fileName, $this->getPayloadForReport());
         $this->report = "reports/{$fileName}";
     }
 
+    private function setPayloadForReport($diagnoseData)
+    {
+        foreach($diagnoseData as $key => $data) {
+            $this->payloadForReport[$key]['observations'] = $data['observations'];
+        }
+    }
+
     public function getPayloadForReport()
     {
+        return $this->payloadForReport;
         $payload = [];
         foreach($this->observations as $key => $value) {
-            $payload[Str::lower(Str::replace(' ', '_', $key))]['observations'] = $value;
+            $payload[Str::lower(Str::replace(' ', '_', $key))]['observations'] = collect($value)
+                ->mapWithKeys(fn ($value, $key) => [Str::replace(' ', '_', Str::lower($key)) => $value])
+                ->toArray();
         }
         return $payload;
     }

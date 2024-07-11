@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    // use DiagnoseTester;
+    use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -42,7 +42,6 @@ class Main extends Component
     public $diagnoseImages = [];
     public $sourceImgs = [];
     public $observations = [];
-    public $payloadObservations = [];
     public $dicomData = [];
     public $response;
     public $report;
@@ -98,7 +97,6 @@ class Main extends Component
     {
         $this->setDiagnoseImages($data);
         $this->setObservations($data);
-        $this->setPayloadObservations($data);
         $this->dispatch('generate-report');
     }
 
@@ -134,18 +132,8 @@ class Main extends Component
                         }
                     }
                     return [Str::headline($key) => $return];
-                });
+                })->toArray();
         }
-    }
-
-    // Seventh Step
-    private function setPayloadObservations($diagnoseData)
-    {
-        foreach($diagnoseData as $key => $data) {
-            $this->payloadObservations[$key]['observations'] = collect($data['observations'])->toArray();
-        }
-        $json = json_encode($this->payloadObservations, JSON_PRETTY_PRINT);
-        Storage::disk('local')->put("payload_observations.json", $json);
     }
 
     public function allHidden()
@@ -204,7 +192,7 @@ class Main extends Component
         $width = imagesx($image);
         $height = imagesy($image);
         $aspectRatio = $height / $width;
-        $newHeight = 680;
+        $newHeight = 600;
         $newWidth = $newHeight / $aspectRatio;
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
 
@@ -228,8 +216,17 @@ class Main extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
-        GenerateReport::dispatch($fileName, $this->payloadObservations);
+        GenerateReport::dispatch($fileName, $this->getPayloadForReport());
         $this->report = "reports/{$fileName}";
+    }
+
+    public function getPayloadForReport()
+    {
+        $payload = [];
+        foreach($this->observations as $key => $value) {
+            $payload[Str::lower(Str::replace(' ', '_', $key))]['observations'] = $value;
+        }
+        return $payload;
     }
 
     public function showReport()
@@ -255,7 +252,6 @@ class Main extends Component
         $this->sourceImgs = [];
         $this->diagnoseImages = [];
         $this->observations = [];
-        $this->payloadObservations = [];
         $this->report = null;
         if($this->report) $this->deleteReport();
     }

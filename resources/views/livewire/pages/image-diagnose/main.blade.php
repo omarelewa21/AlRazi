@@ -7,9 +7,16 @@
             @if(!empty($diagnoseImages))
                 @include('components.image-toolbar.visibility-toggle')
             @endif
-
             @if (!empty($sourceImgs))
                 @include('components.image-toolbar.zoom')
+            @endif
+            @if(!empty($diagnoseImages))
+            <div class="cursor-pointer flex items-center rounded-md shadow px-5 py-2 ml-4"
+                @click="toggleLengthTool($el)"
+                title="Length Tool"
+            >
+                <x-icons.ruler />
+            </div>
             @endif
         </div>
 
@@ -31,7 +38,12 @@
                             @endif
                         @endforeach
                     @endif
-                    <svg id="annotation-svg" x-ref="annotation-svg" class="absolute" :style="{width: imgWidth, height: imgHeight}"></svg>
+                    <svg class="absolute" :height="imgHeight" :width="imgWidth"
+                        x-init="addSvgToTools({{$loop->index}})"
+                        @click="startLineDraw(event, {{$loop->index}})"
+                        @mousemove="continueLineDraw(event, {{$loop->index}})"
+                    >
+                    </svg>
                 </div>
             @endforeach
         </div>
@@ -44,7 +56,7 @@
         <x-loading />
     </div>
 </div>
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', function () {
         const imageContainer = document.getElementById('image-container');
         const image = document.getElementById('source-image');
@@ -161,4 +173,4 @@
             };
         }
     });
-</script>
+</script> --}}

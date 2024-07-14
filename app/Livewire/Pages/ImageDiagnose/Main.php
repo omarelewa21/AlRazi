@@ -15,7 +15,7 @@ use Livewire\Features\SupportFileUploads\WithFileUploads;
 class Main extends Component
 {
     use WithFileUploads;
-    // use DiagnoseTester;
+    use DiagnoseTester;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -43,10 +43,7 @@ class Main extends Component
     public $sourceImgs = [];
     public $observations = [];
     public $dicomData = [];
-    public $response;
     public $report;
-    public $views = [];
-    public $payloadForReport = [];
 
     // First Step
     public function updatedFiles()
@@ -98,7 +95,6 @@ class Main extends Component
     private function setDiagnoseData($data)
     {
         $this->setDiagnoseImages($data);
-        $this->setPayloadForReport($data);
         $this->setObservations($data);
         $this->dispatch('generate-report');
     }
@@ -123,41 +119,8 @@ class Main extends Component
     private function setObservations($diagnoseData)
     {
         foreach($diagnoseData as $key => $data) {
-            $this->views[$key] = Str::headline($data['observations']['view']);
-            $this->observations[$key] = collect($data['observations'])
-                ->except('view')
-                ->mapWithKeys(function ($value, $key) {
-                    $return = [];
-                    foreach ($value as $k => $v) {
-                        if(is_array($v)) {
-                            $return[Str::headline($k)] = $this->formatObsArray($v);
-                        } else {
-                            $return[Str::headline($k)] = $v;
-                        }
-                    }
-                    return [Str::headline($key) => $return];
-                })->toArray();
+            $this->observations[$key]['observations'] = $data['observations'];
         }
-    }
-
-    public function allHidden()
-    {
-        return collect($this->diagnoseImages)->every(fn ($image) => ! $image['visibility']);
-    }
-
-    public function toggleAllVisibility()
-    {
-        $visibility = $this->allHidden();
-
-        $this->diagnoseImages = collect($this->diagnoseImages)->map(function ($image) use ($visibility) {
-            $image['visibility'] = $visibility;
-            return $image;
-        })->toArray();
-    }
-
-    public function toggleVisibility($key)
-    {
-        $this->diagnoseImages[$key]['visibility'] = ! $this->diagnoseImages[$key]['visibility'];
     }
 
     private function parseDicomFile($file)
@@ -166,13 +129,6 @@ class Main extends Component
         $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $file->hashName()));
         Storage::disk('shared')->delete("dicom/{$file->hashName()}");
         return $response->json();
-    }
-
-    private function formatObsArray($array)
-    {
-        return collect($array)->map(function ($value, $key) {
-            return "<span>$key = $value</span><br>";
-        })->implode('');
     }
 
     private function setSourceImages()
@@ -220,28 +176,9 @@ class Main extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
-        Storage::disk('local')->put("test.json", json_encode($this->getPayloadForReport(), JSON_PRETTY_PRINT));
-        GenerateReport::dispatch($fileName, $this->getPayloadForReport());
+        Storage::disk('local')->put("test.json", json_encode($this->observations, JSON_PRETTY_PRINT));
+        GenerateReport::dispatch($fileName, $this->observations);
         $this->report = "reports/{$fileName}";
-    }
-
-    private function setPayloadForReport($diagnoseData)
-    {
-        foreach($diagnoseData as $key => $data) {
-            $this->payloadForReport[$key]['observations'] = $data['observations'];
-        }
-    }
-
-    public function getPayloadForReport()
-    {
-        return $this->payloadForReport;
-        $payload = [];
-        foreach($this->observations as $key => $value) {
-            $payload[Str::lower(Str::replace(' ', '_', $key))]['observations'] = collect($value)
-                ->mapWithKeys(fn ($value, $key) => [Str::replace(' ', '_', Str::lower($key)) => $value])
-                ->toArray();
-        }
-        return $payload;
     }
 
     public function showReport()

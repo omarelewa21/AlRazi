@@ -44,6 +44,7 @@ class Main extends Component
     public $observations = [];
     public $dicomData = [];
     public $report;
+    public bool $observationsChanged = false;
 
     // First Step
     public function updatedFiles()
@@ -176,22 +177,28 @@ class Main extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
-        Storage::disk('local')->put("test.json", json_encode($this->observations, JSON_PRETTY_PRINT));
+        // Storage::disk('local')->put("test.json", json_encode($this->observations, JSON_PRETTY_PRINT));
         GenerateReport::dispatch($fileName, $this->observations);
         $this->report = "reports/{$fileName}";
     }
 
     public function showReport()
     {
-        $maxExecTimesExceeded = 15;
+       if($this->observationsChanged) {
+            $this->generateReport();
+            $this->observationsChanged = false;
+        }
+
+        $maxExecTimesExceeded = 1;
         $counter = 0;
 
         while($counter < $maxExecTimesExceeded && !Storage::disk('public')->exists($this->report)) {
             sleep(2);
+            $counter++;
         }
 
         if(!Storage::disk('public')->exists($this->report)) {
-            dd('Report not found');
+            return;
         }
 
         return response()->file(Storage::disk('public')->path($this->report),

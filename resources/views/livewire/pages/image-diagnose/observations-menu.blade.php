@@ -66,7 +66,11 @@
                                             @foreach ($obsData2 as $key => $observation)
                                                 <tr class="font-sans">
                                                     <td class="border border-gray-400 px-4 py-2 text-left">{{ str()->headline($key) }}</td>
-                                                    <td class="border border-gray-400 px-4 py-2 text-left text-red-600">{!! $observation !!}</td>
+                                                    <td class="border border-gray-400 px-4 py-2 text-left text-red-600">
+                                                        <input class="border-0 outline-0" type="text" wire:model.defer="observations.{{$title}}.observations.{{$obsTitle}}.{{$obsTitle2}}.{{$key}}"
+                                                            wire:change="$set('observationsChanged', true)"
+                                                        >
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -85,7 +89,11 @@
                                     @foreach ($obsData as $key => $observation)
                                         <tr class="font-sans">
                                             <td class="border border-gray-400 px-4 py-2 text-left">{{ str()->headline($key) }}</td>
-                                            <td class="border border-gray-400 px-4 py-2 text-left text-red-600">{!! $observation !!}</td>
+                                            <td class="border border-gray-400 px-4 py-2 text-left text-red-600">
+                                                <input class="border-0 outline-0" type="text" wire:model.defer="observations.{{$title}}.observations.{{$obsTitle}}.{{$key}}"
+                                                    wire:change="$set('observationsChanged', true)"
+                                                >
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

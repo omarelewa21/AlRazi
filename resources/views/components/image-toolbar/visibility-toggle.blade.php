@@ -82,5 +82,6 @@
                 </button>
             @endforeach
         </div>
+        <label class="absolute top-0 right-0 -mt-2 -mr-2 px-2 py-1 text-base font-bold rounded-full">{{ $loop->iteration }}</label>
     </div>
 @endforeach

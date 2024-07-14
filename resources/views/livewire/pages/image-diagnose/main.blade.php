@@ -10,13 +10,13 @@
             @if (!empty($sourceImgs))
                 @include('components.image-toolbar.zoom')
             @endif
-            @if(!empty($diagnoseImages))
-            <div class="cursor-pointer flex items-center rounded-md shadow px-5 py-2 ml-4"
-                @click="toggleLengthTool($el)"
-                title="Length Tool"
-            >
-                <x-icons.ruler />
-            </div>
+            @if(!empty($sourceImgs))
+                <div class="cursor-pointer flex items-center rounded-md shadow px-5 py-2 ml-4"
+                    @click="toggleLengthTool($el)"
+                    title="Length Tool"
+                >
+                    <x-icons.ruler />
+                </div>
             @endif
         </div>
 
@@ -43,6 +43,9 @@
                         @click="startLineDraw(event, {{$loop->index}})"
                         @mousemove="continueLineDraw(event, {{$loop->index}})"
                     >
+                        <text x="10" y="20" fill="#ffffff" font-size="20px">
+                            {{ $loop->index + 1 }}
+                        </text>
                     </svg>
                 </div>
             @endforeach
@@ -56,121 +59,3 @@
         <x-loading />
     </div>
 </div>
-{{-- <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const imageContainer = document.getElementById('image-container');
-        const image = document.getElementById('source-image');
-        const svg = document.getElementById('annotation-svg');
-        let points = [];
-        let isDragging = false;
-
-        svg.addEventListener('click', function (event) {
-            if (isDragging) return; // Prevent drawing a point if dragging
-
-            const rect = image.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-
-            points.push({ x, y });
-            console.log(points);
-
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', x);
-            circle.setAttribute('cy', y);
-            circle.setAttribute('r', 4);
-            circle.setAttribute('fill', 'red');
-            svg.appendChild(circle);
-
-            if (points.length === 2) {
-                drawLine(points[0], points[1]);
-                displayDistance(points[0], points[1]);
-                points = [];
-            }
-        });
-
-        function drawLine(point1, point2) {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', point1.x);
-            line.setAttribute('y1', point1.y);
-            line.setAttribute('x2', point2.x);
-            line.setAttribute('y2', point2.y);
-            line.setAttribute('stroke', 'red');
-            line.setAttribute('stroke-width', 2);
-            svg.appendChild(line);
-        }
-
-        function displayDistance(point1, point2) {
-            const distance = Math.sqrt((point2.x - point1.x) ** 2 + (point2.y - point1.y) ** 2);
-            const midX = (point1.x + point2.x) / 2;
-            const midY = (point1.y + point2.y) / 2;
-            const offsetX = 10; // Adjust this value to move the label further horizontally
-            const offsetY = -10; // Adjust this value to move the label further vertically
-
-            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.setAttribute('x', midX + offsetX);
-            text.setAttribute('y', midY + offsetY);
-            text.setAttribute('fill', 'green');
-            text.classList.add('draggable');
-            text.textContent = `${distance.toFixed(2)} px`;
-            svg.appendChild(text);
-
-            const dashedLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            dashedLine.setAttribute('x1', midX);
-            dashedLine.setAttribute('y1', midY);
-            dashedLine.setAttribute('x2', midX + offsetX);
-            dashedLine.setAttribute('y2', midY + offsetY);
-            dashedLine.setAttribute('stroke', 'green');
-            dashedLine.setAttribute('stroke-width', 1);
-            dashedLine.setAttribute('stroke-dasharray', '4,2'); // Creates a dashed line
-            svg.appendChild(dashedLine);
-
-            makeDraggable(text);
-        }
-
-        function makeDraggable(element) {
-            element.addEventListener('mousedown', startDrag);
-        }
-
-        function startDrag(event) {
-            isDragging = true;
-            selectedElement = event.target;
-            offset = getMousePosition(event);
-            offset.x -= parseFloat(selectedElement.getAttribute('x'));
-            offset.y -= parseFloat(selectedElement.getAttribute('y'));
-            selectedElement.classList.add('dragging');
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', endDrag);
-        }
-
-        function drag(event) {
-            const coord = getMousePosition(event);
-            selectedElement.setAttribute('x', coord.x - offset.x);
-            selectedElement.setAttribute('y', coord.y - offset.y);
-
-            const dashedLine = selectedElement.nextElementSibling;
-            if (dashedLine && dashedLine.tagName === 'line') {
-                dashedLine.setAttribute('x2', coord.x - offset.x);
-                dashedLine.setAttribute('y2', coord.y - offset.y);
-            }
-        }
-
-        function endDrag() {
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('mouseup', endDrag);
-            selectedElement.classList.remove('dragging');
-            selectedElement = null;
-            offset = null;
-            setTimeout(() => {
-                isDragging = false;
-            }, 1);
-        }
-
-        function getMousePosition(event) {
-            const svgRect = svg.getBoundingClientRect();
-            return {
-                x: event.clientX - svgRect.left,
-                y: event.clientY - svgRect.top
-            };
-        }
-    });
-</script> --}}

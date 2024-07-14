@@ -7,7 +7,7 @@ document.addEventListener("alpine:init", () => {
         tools: [],
         svg: null,
         init: function () {
-            // document.body.style.zoom = '75%';
+            document.body.style.zoom = '75%';
         },
         zoom: function (event) {
             if(event.deltaY < 0) this.zoomIn();
@@ -81,7 +81,7 @@ document.addEventListener("alpine:init", () => {
                     isActive: false,
                     isStarted: false,
                 },
-            }
+            };
         },
         startLineDraw: function (event, index) {
             if(!this.tools[index].length.isActive) return;
@@ -90,10 +90,10 @@ document.addEventListener("alpine:init", () => {
             this.tools[index].length.isStarted = true;
             this.svg = event.target.closest('svg');
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', event.offsetX);
-            line.setAttribute('y1', event.offsetY);
-            line.setAttribute('x2', event.offsetX);
-            line.setAttribute('y2', event.offsetY);
+            line.setAttribute('x1', (event.offsetX / 0.75));
+            line.setAttribute('y1', event.offsetY / 0.75);
+            line.setAttribute('x2', event.offsetX / 0.75);
+            line.setAttribute('y2', event.offsetY / 0.75);
             line.setAttribute('stroke', 'green');
             line.setAttribute('stroke-width', 4);
             this.svg.appendChild(line);
@@ -101,8 +101,8 @@ document.addEventListener("alpine:init", () => {
         continueLineDraw: function (event, index) {
             if(!this.tools[index].length.isStarted) return;
             const line = this.svg.querySelector('line:last-child');
-            line.setAttribute('x2', event.offsetX);
-            line.setAttribute('y2', event.offsetY);
+            line.setAttribute('x2', event.offsetX / 0.75);
+            line.setAttribute('y2', event.offsetY / 0.75);
         },
         endLineDraw: function (event, index) {
             if(!this.tools[index].length.isStarted) return;

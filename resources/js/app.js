@@ -75,11 +75,12 @@ document.addEventListener("alpine:init", () => {
                 text.setAttribute('y', text.getAttribute('y') * newHeight / text.closest('svg').getAttribute('height'));
             });
         },
-        addSvgToTools: function(index) {
+        addSvgToTools: function(index, pixelScale) {
             this.tools[index] = {
                 'length': {
                     isActive: false,
                     isStarted: false,
+                    pixelScale: pixelScale
                 },
             };
         },
@@ -107,12 +108,12 @@ document.addEventListener("alpine:init", () => {
         endLineDraw: function (event, index) {
             if(!this.tools[index].length.isStarted) return;
             this.tools[index].length.isStarted = false;
-            this.diplayDistance(event, index);
+            this.diplayDistance(this.tools[index].length.pixelScale);
             this.svg = null;
         },
-        diplayDistance: function (event, index) {
+        diplayDistance: function (pixelScale) {
             const line = this.svg.querySelector('line:last-child');
-            const distance = Math.sqrt(Math.pow(line.getAttribute('x2') - line.getAttribute('x1'), 2) + Math.pow(line.getAttribute('y2') - line.getAttribute('y1'), 2));
+            const distance = Math.sqrt(Math.pow(line.getAttribute('x2') - line.getAttribute('x1'), 2) + Math.pow(line.getAttribute('y2') - line.getAttribute('y1'), 2)) * pixelScale;
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.setAttribute('x', (parseInt(line.getAttribute('x1')) + parseInt(line.getAttribute('x2'))) / 2);
             text.setAttribute('y', (parseInt(line.getAttribute('y1')) + parseInt(line.getAttribute('y2'))) / 2);

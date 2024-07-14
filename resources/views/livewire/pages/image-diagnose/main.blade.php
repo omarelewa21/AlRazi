@@ -40,7 +40,7 @@
                         @endforeach
                     @endif
                     <svg class="absolute" :height="imgHeight" :width="imgWidth"
-                        x-init="addSvgToTools({{$loop->index}})"
+                        x-init="addSvgToTools({{$loop->index}}, {{$dicomData[$loop->index]['pixel_scale']}})"
                         @click="startLineDraw(event, {{$loop->index}})"
                         @mousemove="continueLineDraw(event, {{$loop->index}})"
                     >

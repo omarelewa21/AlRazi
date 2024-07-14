@@ -11,6 +11,7 @@
                 @include('components.image-toolbar.zoom')
             @endif
             @if(!empty($sourceImgs))
+                <span class="outline outline-2 outline-blue-500 hidden"></span>
                 <div class="cursor-pointer flex items-center rounded-md shadow px-5 py-2 ml-4"
                     @click="toggleLengthTool($el)"
                     title="Length Tool"

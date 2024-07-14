@@ -9,6 +9,7 @@ trait DiagnoseTester
     public function mount()
     {
         $diagnoseData = $this->getTestDiagnoseData();
+        $this->setDicomData($diagnoseData);
         $this->setTestSourceImages($diagnoseData);
         $this->setDiagnoseData($diagnoseData);
     }
@@ -25,6 +26,16 @@ trait DiagnoseTester
         }
 
         return $jsonData;
+    }
+
+    protected function setDicomData($diagnoseData)
+    {
+        foreach($diagnoseData as $key => $data) {
+            $this->dicomData[] = [
+                'image' => "data:image/png;base64,{$this->setImageSize($data['images']['source_img'])}",
+                'pixel_scale' => 3.2,
+            ];
+        }
     }
 
     protected function setTestSourceImages($data)

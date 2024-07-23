@@ -2,9 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('diagnose', '\App\Http\Controllers\DiagnoseController@create')
-    ->middleware(['auth', 'verified'])
-    ->name('diagnose');
+Route::group(['middleware' => ['web', 'auth'], 'prefix' => 'diagnose'], function () {
+    Route::get('create', App\Livewire\Pages\ImageDiagnose\Create::class)->name('diagnose.create');
+    Route::get('show/{diagnose}', App\Livewire\Pages\ImageDiagnose\Show::class)->name('diagnose.show');
+});
 
 Route::view('/', 'dashboard')
     ->middleware(['auth', 'verified'])

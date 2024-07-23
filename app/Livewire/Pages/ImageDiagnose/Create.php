@@ -3,6 +3,8 @@
 namespace App\Livewire\Pages\ImageDiagnose;
 
 use App\Jobs\GenerateReport;
+use App\Models\Diagnose;
+use App\Models\Patient;
 use App\Traits\DiagnoseTester;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -12,10 +14,15 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
-class Main extends Component
+class Create extends Component
 {
     use WithFileUploads;
-    use DiagnoseTester;
+    // use DiagnoseTester;
+
+    public function render()
+    {
+        return view('livewire.pages.image-diagnose.create')->layout('layouts.diagnose');
+    }
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -39,6 +46,7 @@ class Main extends Component
     #[Validate(['files.*' => 'file|mimes:dcm'])]
     public $files;
 
+    public $diagnoseModel;
     public $diagnoseImages = [];
     public $sourceImgs = [];
     public $observations = [];
@@ -62,6 +70,7 @@ class Main extends Component
     {
         $this->validate();
         $this->processFile();
+        $this->saveDiagnosis();
     }
 
     private function processFile()
@@ -71,6 +80,26 @@ class Main extends Component
             $response[$key] = json_decode($data, true);
         }
         $this->setDiagnoseData($response);
+    }
+
+    private function saveDiagnosis()
+    {
+        $patient = Patient::create([
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'gender' => $this->gender,
+            'date_of_birth' => $this->date_of_birth,
+            'referral' => $this->referral,
+        ]);
+
+        $this->diagnoseModel = Diagnose::create([
+            'patient_id' => $patient->id,
+            'dcm_files' => collect($this->files)->map(fn($file) => $file->hashName())->toArray(),
+            'source_imgs' => $this->sourceImgs,
+            'diagnose_imgs' => $this->diagnoseImages,
+            'observations' => $this->observations,
+        ]);
     }
 
     // Third Step
@@ -177,14 +206,14 @@ class Main extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
-        // Storage::disk('local')->put("test.json", json_encode($this->observations, JSON_PRETTY_PRINT));
-        GenerateReport::dispatch($fileName, $this->observations);
+        GenerateReport::dispatch($fileName, $this->diagnoseModel);
         $this->report = "reports/{$fileName}";
     }
 
     public function showReport()
     {
        if($this->observationsChanged) {
+            $this->diagnoseModel->update(['observations' => $this->observations]);
             $this->generateReport();
             $this->observationsChanged = false;
         }

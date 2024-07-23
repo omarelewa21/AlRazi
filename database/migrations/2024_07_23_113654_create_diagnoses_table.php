@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('diagnoses', function (Blueprint $table) {
             $table->id();
-            $table->string('dcm_file');
-            $table->foreignId('patient_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('patient_id')->constrained()->onDelete('cascade');
+            $table->binary('dcm_files');
             $table->json('source_imgs')->nullable();
             $table->json('diagnose_imgs')->nullable();
             $table->json('observations')->nullable();
             $table->string('report')->nullable();
+            $table->string('status')->default('New');
             $table->timestamps();
         });
     }

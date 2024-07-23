@@ -15,7 +15,22 @@ class Patient extends Model
         'phone',
         'gender',
         'referral',
+        'date_of_birth',
     ];
+
+    protected $casts = [
+        'date_of_birth' => 'date:Y-m-d',
+        'created_at' => 'datetime:Y-m-d H:i A',
+    ];
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        static::creating(function ($model) {
+            $model->user_id = auth()->id();
+        });
+    }
 
     public function diagnoses()
     {

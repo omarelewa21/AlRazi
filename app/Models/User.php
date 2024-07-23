@@ -44,4 +44,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function patients()
+    {
+        return $this->hasMany(Patient::class);
+    }
+
+    public function diagnoses()
+    {
+        return $this->hasManyThrough(Diagnose::class, Patient::class)->with('patient');
+    }
 }

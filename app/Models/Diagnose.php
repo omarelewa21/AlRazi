@@ -11,14 +11,16 @@ class Diagnose extends Model
     use HasFactory;
 
     protected $fillable = [
-        'dcm_file',
+        'dcm_files',
         'source_imgs',
         'diagnose_imgs',
         'observations',
         'report',
+        'status',
     ];
 
     protected $casts = [
+        'dcm_files' => 'array',
         'source_imgs' => 'array',
         'diagnose_imgs' => 'array',
         'observations' => 'array',

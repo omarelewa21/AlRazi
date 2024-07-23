@@ -11,7 +11,7 @@
                 <div class="text-gray-900 dark:text-gray-100 mb-4">
                     {{ __("Welcome to AlRazi for X-Ray Clinic Diagnosis") }}
                 </div>
-                <a href="{{ route('diagnose') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <a href="{{ route('diagnose.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     {{ __("Diagnose New X-Ray Image") }}
                 </a>
             </div>

@@ -5,5 +5,5 @@
         </h2>
     </x-slot>
 
-    @livewire('pages.image-diagnose.main')
+    {{ $slot }}
 </x-app-layout>

@@ -15,13 +15,13 @@
         <tbody>
             @foreach ($diagnosis as $diagnose)
                 <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-                    <td class="px-6 py-4">{{ $diagnose->patient->created_at }}</td>
+                    <td class="px-6 py-4">{{ \Carbon\Carbon::parse($diagnose->created_at)->format('Y-m-d H:i A') }}</td>
                     <td class="px-6 py-4">{{ $diagnose->id }}</td>
                     <td class="px-6 py-4">{{ $diagnose->patient->name }}</td>
-                    <td class="px-6 py-4">{{ $diagnose->referral }}</td>
+                    <td class="px-6 py-4">{{ $diagnose->patient->referral }}</td>
                     <td class="px-6 py-4">{{ $diagnose->status }}</td>
                     <td class="px-6 py-4">
-                        <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Review</a>
+                        <a href="{{route('diagnose.show', $diagnose->id)}}" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Review</a>
                     </td>
                 </tr>
             @endforeach

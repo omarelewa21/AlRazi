@@ -15,6 +15,10 @@
                     {{ __("Diagnose New X-Ray Image") }}
                 </a>
             </div>
+
+            <div class="mt-5 p-6 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <x-diagnosis />
+            </div>
         </div>
     </div>
 </x-app-layout>

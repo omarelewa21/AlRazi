@@ -11,6 +11,7 @@ class Diagnose extends Model
     use HasFactory;
 
     protected $fillable = [
+        'patient_id',
         'dcm_files',
         'source_imgs',
         'diagnose_imgs',

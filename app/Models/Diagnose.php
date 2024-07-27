@@ -41,4 +41,20 @@ class Diagnose extends Model
     {
         return Storage::disk('public')->path($this->report);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class)->withPivot('priority', 'referred_by')
+            ->wherePivot('user_id', auth()->id());
+    }
+
+    public function referrals()
+    {
+        return $this->hasManyThrough(User::class, DiagnoseUser::class, 'diagnose_id', 'id', 'id', 'referred_by')->where('user_id', auth()->id());
+    }
+
+    public function DiganoseUser()
+    {
+        return $this->hasOne(DiagnoseUser::class)->where('user_id', auth()->id());
+    }
 }

@@ -54,4 +54,14 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(Diagnose::class, Patient::class)->with('patient');
     }
+
+    public function referrals()
+    {
+        return $this->hasMany(DiagnoseUser::class, 'referred_by');
+    }
+
+    public function diagnoseUsers()
+    {
+        return $this->hasMany(DiagnoseUser::class);
+    }
 }

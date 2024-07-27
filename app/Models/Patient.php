@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,6 +25,8 @@ class Patient extends Model
         'created_at' => 'datetime:Y-m-d H:i A',
     ];
 
+    protected $appends = ['age'];
+
     protected static function booted()
     {
         parent::booted();
@@ -35,5 +39,12 @@ class Patient extends Model
     public function diagnoses()
     {
         return $this->hasMany(Diagnose::class);
+    }
+
+    protected function age(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value, $attributes) => (int) round(Carbon::parse($attributes['date_of_birth'])->diffInYears(now())),
+        );
     }
 }

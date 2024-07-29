@@ -30,7 +30,7 @@ class Share extends ModalComponent implements HasForms, HasTable
     {
         return $table
             ->heading('Users list')
-            ->query(User::where('id', '!=', auth()->id()))
+            ->query($this->getQuery())
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('email')->sortable()->searchable(),
@@ -75,11 +75,25 @@ class Share extends ModalComponent implements HasForms, HasTable
         ]);
 
         $this->dispatch('notify-user', email: $user->email, diagnoseUser: $diagnoseUser->id);
+        $this->dispatch('show-toast', message: 'Diagnose shared successfully', type: 'success');
     }
 
     #[On('notify-user')]
     public function notifyUser(string $email, DiagnoseUser $diagnoseUser)
     {
         Mail::to($email)->send(new DiagnoseShared($diagnoseUser));
+    }
+
+    protected function getQuery()
+    {
+        return User::whereNotIn('id', $this->exculdedUserIds());
+    }
+
+    protected function exculdedUserIds()
+    {
+        return DiagnoseUser::where('diagnose_id', $this->diagnose->id)->pluck('user_id')
+            ->push(auth()->id())
+            ->push($this->diagnose->patient->user_id)
+            ->toArray();
     }
 }

@@ -38,5 +38,6 @@
         @filamentScripts
         @livewire('wire-elements-modal')
         @vite('resources/js/app.js')
+        <x-message-toaster />
     </body>
 </html>

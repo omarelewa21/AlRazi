@@ -16,4 +16,5 @@
             </div>
         </div>
     </div>
+    <x-info-modal />
 </x-app-layout>

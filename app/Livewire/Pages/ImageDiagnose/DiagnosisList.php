@@ -14,6 +14,8 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
 
 class DiagnosisList extends Component implements HasForms, HasTable
 {
@@ -77,7 +79,11 @@ class DiagnosisList extends Component implements HasForms, HasTable
 
             ])
             ->bulkActions([
-                // ...
+                BulkAction::make('delete')
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each(fn (Diagnose $record) => $this->delete($record)))
+                    ->icon('heroicon-o-trash')
+                    ->color('danger'),
             ]);
     }
 

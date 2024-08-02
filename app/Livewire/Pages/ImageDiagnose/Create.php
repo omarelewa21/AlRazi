@@ -156,8 +156,7 @@ class Create extends Component
     private function parseDicomFile($file)
     {
         $file->storeAs('dicom', $file->hashName(), 'shared');
-        $response = Http::acceptJson()->get(sprintf("%s/%s", config('app.dicom_parse_server'), $file->hashName()));
-        Storage::disk('shared')->delete("dicom/{$file->hashName()}");
+        $response = Http::acceptJson()->post(sprintf("%s/extract_image_from_dicom", config('app.dicom_parse_server')), ['dicom_file' => $file->hashName()]);
         return $response->json();
     }
 

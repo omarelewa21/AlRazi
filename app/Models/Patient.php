@@ -12,6 +12,7 @@ class Patient extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'phone',
@@ -32,7 +33,9 @@ class Patient extends Model
         parent::booted();
 
         static::creating(function ($model) {
-            $model->user_id = auth()->id();
+            if($model->user_id === null) {
+                $model->user_id = auth()->id();
+            };
         });
     }
 
@@ -45,6 +48,13 @@ class Patient extends Model
     {
         return Attribute::make(
             get: fn($value, $attributes) => (int) round(Carbon::parse($attributes['date_of_birth'])->diffInYears(now())),
+        );
+    }
+
+    protected function gender(): Attribute
+    {
+        return Attribute::make(
+            set: fn($value) => strtolower($value) === 'f' ? 'female' : 'male',
         );
     }
 }

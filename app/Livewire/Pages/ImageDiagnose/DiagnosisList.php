@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\ImageDiagnose;
 
 use App\Models\Diagnose;
+use App\Models\DiagnoseUser;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables\Contracts\HasTable;
@@ -11,6 +12,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
 class DiagnosisList extends Component implements HasForms, HasTable
@@ -61,6 +63,14 @@ class DiagnosisList extends Component implements HasForms, HasTable
                         })
                         ->icon('heroicon-o-share')
                         ->color('warning'),
+
+                    Action::make('Delete')
+                        ->requiresConfirmation()
+                        ->action(function (Diagnose $record) {
+                            $this->delete($record);
+                        })
+                        ->icon('heroicon-o-trash')
+                        ->color('danger'),
                 ])
                 ->color('info')
                 ->tooltip('Actions'),
@@ -78,5 +88,21 @@ class DiagnosisList extends Component implements HasForms, HasTable
                     ->orWhereRelation('users', 'user_id', auth()->id());
             })
             ->select('id', 'patient_id', 'created_at', 'status');
+    }
+
+    protected function delete(Diagnose $diagnose)
+    {
+        $diagnose = Diagnose::find($diagnose->id);
+        foreach($diagnose->dcm_files as $file) {
+            Storage::disk('shared')->delete($file);
+        }
+        $patient = $diagnose->patient;
+        if($patient->user_id == auth()->id()) {
+            DiagnoseUser::where('diagnose_id', $diagnose->id)->delete();
+            $diagnose->delete();
+            $patient->delete();
+        } else {
+            DiagnoseUser::where('diagnose_id', $diagnose->id)->where('user_id', auth()->id())->delete();
+        }
     }
 }

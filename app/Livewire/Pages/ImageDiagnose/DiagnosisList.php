@@ -30,7 +30,7 @@ class DiagnosisList extends Component implements HasForms, HasTable
                 TextColumn::make('created_at')->label('Date & Time')->dateTime('Y-m-d H:i A')->sortable(),
                 TextColumn::make('id')->label('Worklist Id')->sortable(),
                 TextColumn::make('patient.name')->label('Patient Name')->sortable()->searchable(),
-                TextColumn::make('patient.age')->label('Patient Age')->sortable()->searchable(),
+                TextColumn::make('patient.age')->label('Patient Age'),
                 TextColumn::make('DiganoseUser.referredBy.name')->label('Referral')->searchable()->sortable(),
                 TextColumn::make('DiganoseUser.priority')->label('Priority')->sortable()
                     ->default('low')

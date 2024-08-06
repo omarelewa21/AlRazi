@@ -15,6 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Columns\ViewColumn;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\On;
 
@@ -30,6 +31,7 @@ class DiagnosisList extends Component implements HasForms, HasTable
             ->columns([
                 TextColumn::make('created_at')->label('Date & Time')->dateTime('Y-m-d H:i A')->sortable(),
                 TextColumn::make('id')->label('Worklist Id')->sortable(),
+                ViewColumn::make('observations')->view('tables.columns.views')->label('Views'),
                 TextColumn::make('patient.name')->label('Patient Name')->sortable()->searchable(),
                 TextColumn::make('patient.age')->label('Patient Age'),
                 TextColumn::make('DiganoseUser.referredBy.name')->label('Referral')->searchable()->sortable(),
@@ -94,7 +96,7 @@ class DiagnosisList extends Component implements HasForms, HasTable
                 $query->whereRelation('patient', 'user_id', auth()->id())
                     ->orWhereRelation('users', 'user_id', auth()->id());
             })
-            ->select('id', 'patient_id', 'created_at', 'status');
+            ->select('id', 'patient_id', 'created_at', 'status', 'observations');
     }
 
     protected function delete(Diagnose $diagnose)

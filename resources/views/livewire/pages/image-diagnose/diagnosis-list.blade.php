@@ -8,6 +8,9 @@
             <button class="text-base bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" wire:click="$dispatch('openModal', {component: 'pages.image-diagnose.quick-upload'})">
                 @lang("Quick Upload")
             </button>
+            <button class="text-base bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded" wire:click="$dispatch('openModal', {component: 'pages.image-diagnose.add-sample'})">
+                @lang("Add Samples")
+            </button>
         </div>
 
     </div>

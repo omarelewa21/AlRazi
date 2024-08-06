@@ -5,7 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use App\Models\Scopes\RejectSamples;
+use Illuminate\Database\Eloquent\Builder;
 
+#[ScopedBy([RejectSamples::class])]
 class Diagnose extends Model
 {
     use HasFactory;
@@ -18,6 +22,7 @@ class Diagnose extends Model
         'observations',
         'report',
         'status',
+        'is_sample',
     ];
 
     protected $casts = [
@@ -26,6 +31,11 @@ class Diagnose extends Model
         'diagnose_imgs' => 'array',
         'observations' => 'array',
     ];
+
+    public function scopeSamples(Builder $query): void
+    {
+        $query->withoutGlobalScope(RejectSamples::class)->where('is_sample', true);
+    }
 
     public function patient()
     {

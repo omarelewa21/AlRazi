@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\On;
 
 class DiagnosisList extends Component implements HasForms, HasTable
 {
@@ -110,5 +111,10 @@ class DiagnosisList extends Component implements HasForms, HasTable
         } else {
             DiagnoseUser::where('diagnose_id', $diagnose->id)->where('user_id', auth()->id())->delete();
         }
+    }
+
+    #[On('refresh-work-list')]
+    public function refreshWorkList()
+    {
     }
 }

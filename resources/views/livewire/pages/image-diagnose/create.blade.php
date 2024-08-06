@@ -45,7 +45,7 @@
                         @mousemove="continueLineDraw(event, {{$loop->index}})"
                     >
                         <text x="10" y="20" fill="#ffffff" font-size="20px">
-                            {{ $loop->index + 1 }}
+                            {{ $loop->iteration }}
                         </text>
                     </svg>
                 </div>

@@ -15,16 +15,21 @@
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 leading-tight p-4">
              Single Cases
         </h1>
-        <div class="grid grid-cols-3 gap-2 ml-4">
-            @foreach ($this->singleCases() as $case)
-                @foreach ($case as $data)
-                    <div class="flex flex-col cursor-pointer p-2" @click="toggleAdd('{{ $data['id'] }}')"
-                        :class="diagnosesToAdd.includes('{{ $data['id'] }}') ? 'outline outline-2 outline-blue-500 rounded-md' : ''"
-                    >
-                        <img src="{{ $data['url'] }}" alt="{{ $data['view'] }}" class="w-52 h-52 object-cover">
-                        <p> {{ $data['view'] }} </p>
-                    </div>
-                @endforeach
+        <div class="ml-4 flex flex-col">
+            @foreach ($this->singleCases() as $view => $cases)
+                <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-tight py-4 px-2">
+                    {{ $view }}
+                </h1>
+
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach ($cases as $case)
+                        <div class="cursor-pointer p-2" @click="toggleAdd('{{ $case['id'] }}')"
+                            :class="diagnosesToAdd.includes('{{ $case['id'] }}') ? 'outline outline-2 outline-blue-500 rounded-md' : ''"
+                        >
+                            <img src="{{ $case['url'] }}" alt="{{ $case['view'] }}" class="w-52 h-52 object-cover">
+                        </div>
+                    @endforeach
+                </div>
             @endforeach
         </div>
     </div>
@@ -34,15 +39,15 @@
             Compound Cases
        </h1>
         <div class="grid grid-cols-2 gap-4 mx-2">
-            @foreach ($this->compoundCases() as $case)
-                @php $id = reset($case)['id'] @endphp
+            @foreach ($this->compoundCases() as $cases)
+                @php $id = reset($cases)['id'] @endphp
                 <div class="flex flex-row justify-between cursor-pointer p-2" @click="toggleAdd('{{ $id }}')"
                     :class="diagnosesToAdd.includes('{{ $id }}') ? 'outline outline-2 outline-blue-500 rounded-md' : ''"
                 >
-                    @foreach ($case as $data)
+                    @foreach ($cases as $case)
                         <div class="flex flex-col">
-                            <img src="{{ $data['url'] }}" alt="{{ $data['view'] }}" class="w-48 h-52 object-cover">
-                            <p> {{ $data['view'] }} </p>
+                            <img src="{{ $case['url'] }}" alt="{{ $case['view'] }}" class="w-48 h-52 object-cover">
+                            <p> {{ $case['view'] }} </p>
                         </div>
                     @endforeach
                 </div>

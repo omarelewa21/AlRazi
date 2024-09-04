@@ -32,6 +32,18 @@ class Diagnose extends Model
         'observations' => 'array',
     ];
 
+    protected static function booted()
+    {
+        parent::booted();
+
+        static::deleted(function ($model) {
+            foreach ($model->dcm_files as $file) {
+                Storage::disk('shared')->delete("dicom/{$file}");
+            }
+            Storage::disk('public')->delete($model->report);
+        });
+    }
+
     public function scopeSamples(Builder $query): void
     {
         $query->withoutGlobalScope(RejectSamples::class)->where('is_sample', true);
@@ -40,11 +52,6 @@ class Diagnose extends Model
     public function patient()
     {
         return $this->belongsTo(Patient::class);
-    }
-
-    public function getDcmFile()
-    {
-        return Storage::disk('shared')->get($this->dcm_file);
     }
 
     public function getReportPath()

@@ -12,14 +12,16 @@ use Livewire\Form;
 
 class LoginForm extends Form
 {
-    #[Validate('required|string|email')]
-    public string $email = '';
+    #[Validate('required|string')]
+    public string $emailOrUsername = '';
 
     #[Validate('required|string')]
     public string $password = '';
 
     #[Validate('boolean')]
     public bool $remember = false;
+
+    public bool $isEmail = false;
 
     /**
      * Attempt to authenticate the request's credentials.
@@ -30,7 +32,13 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        if(filter_var($this->emailOrUsername, FILTER_VALIDATE_EMAIL)) {
+            $this->isEmail = true;
+        } else {
+            $this->isEmail = false;
+        }
+
+        if ($this->authFailed()) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -39,6 +47,12 @@ class LoginForm extends Form
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    protected function authFailed(): bool
+    {
+        return ($this->isEmail && ! Auth::attempt(['email' => $this->emailOrUsername, 'password' => $this->password], $this->remember))
+            || (! $this->isEmail && ! Auth::attempt(['username' => $this->emailOrUsername, 'password' => $this->password], $this->remember));
     }
 
     /**
@@ -67,6 +81,6 @@ class LoginForm extends Form
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->emailOrUsername).'|'.request()->ip());
     }
 }

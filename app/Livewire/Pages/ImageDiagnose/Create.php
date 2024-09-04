@@ -205,8 +205,8 @@ class Create extends Component
     {
         $randomString = Str::random(10);
         $fileName = sprintf("%s.pdf", $randomString);
-        (new GenerateReport($fileName, $this->diagnoseModel))->handle();
-        // GenerateReport::dispatch($fileName, $this->diagnoseModel);
+        // (new GenerateReport($fileName, $this->diagnoseModel))->handle();
+        GenerateReport::dispatch($fileName, $this->diagnoseModel);
         $this->report = "reports/{$fileName}";
     }
 
@@ -219,12 +219,12 @@ class Create extends Component
         }
 
         // To be removed
-        if(!$this->report) {
-            $this->generateReport();
-        }
+        // if(!$this->report) {
+        //     $this->generateReport();
+        // }
 
-        return response()->file(Storage::disk('public')->path($this->report),
-            ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="report.pdf"']);
+        // return response()->file(Storage::disk('public')->path($this->report),
+        //     ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="report.pdf"']);
 
 
 

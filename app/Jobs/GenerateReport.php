@@ -38,14 +38,14 @@ class GenerateReport implements ShouldQueue
     private function sendForMultipleFiles(): void
     {
         $response = Http::timeout(10000)
-            ->post(env('PROCESS_SERVER') . '/full_report', $this->diagnoseModel->observations);
+            ->post(config("app.process_server") . '/full_report', $this->diagnoseModel->observations);
         Storage::disk('public')->put("reports/{$this->fileName}", $response->body());
     }
 
     private function sendForSingleFile(): void
     {
         $response = Http::timeout(10000)
-            ->post(env('PROCESS_SERVER') . '/report', $this->diagnoseModel->observations);
+            ->post(config("app.process_server") . '/report', $this->diagnoseModel->observations);
         Storage::disk('public')->put("reports/{$this->fileName}", $response->body());
     }
 }

@@ -46,7 +46,6 @@ class AddSample extends ModalComponent
 
     public function addSamplesToWorkList()
     {
-        dd($this->singleCases());
         $diagnoses = Diagnose::samples()->whereIn('id', $this->diagnosesToAdd)->with('patient')->get();
         foreach ($diagnoses as $diagnose) {
             $newPatient = $diagnose->patient->replicate();
